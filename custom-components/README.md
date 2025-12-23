@@ -10,6 +10,7 @@
 
 ## sidebar
 
-<img width="437" height="233" alt="custom-card" src="https://github.com/user-attachments/assets/bfef3e5f-6b89-41a1-a29c-93b1ce145e97" />
+<img width="361" height="1192" alt="sidebar" src="https://github.com/user-attachments/assets/0bca6980-e4d2-463c-9073-692f0c626945" />
+
 
 
