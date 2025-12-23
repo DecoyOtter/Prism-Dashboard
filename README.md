@@ -19,8 +19,10 @@
   - [1. Dateien vorbereiten](#1-dateien-vorbereiten)
   - [2. Dashboard anlegen](#2-dashboard-anlegen)
   - [3. Code einfügen](#3-code-einfügen)
+  - [4. Custom Cards registrieren](#4-custom-cards-registrieren)
 - [Configuration](#configuration)
   - [Entitäten anpassen](#entitäten-anpassen)
+  - [Custom Cards konfigurieren](#custom-cards-konfigurieren)
   - [Styles ändern](#styles-ändern)
 - [Support / Feedback](#support--feedback)
 - [Contributing](#contributing)
@@ -114,12 +116,28 @@ Damit dieses Dashboard funktioniert, müssen folgende Frontend-Integrationen üb
 ### 3. Code einfügen
 
 1. Das neue Dashboard öffnen.  
-2. Oben rechts auf die drei Punkte `(...)` klicken → **„Bearbeiten“**.  
-3. Erneut auf die drei Punkte klicken → **„Raw-Konfigurationseditor“** auswählen.  
+2. Oben rechts auf die drei Punkte `(...)` klicken → **„Bearbeiten"**.  
+3. Erneut auf die drei Punkte klicken → **„Raw-Konfigurationseditor"** auswählen.  
 4. Den gesamten Inhalt löschen.  
 5. Den Inhalt der `dashboard.yaml` aus diesem Repository einfügen.  
-6. **WICHTIG:** Entitäten an deine eigene Hardware anpassen (siehe Abschnitt „Configuration“).  
-7. Auf **„Speichern“** klicken.
+6. **WICHTIG:** Entitäten an deine eigene Hardware anpassen (siehe Abschnitt „Configuration").  
+7. Auf **„Speichern"** klicken.
+
+### 4. Custom Cards registrieren
+
+Das Dashboard nutzt zwei benutzerdefinierte Karten (`prism-heat` und `prism-button`), die als JavaScript-Module registriert werden müssen:
+
+1. In Home Assistant zu **Einstellungen → Geräte & Dienste** navigieren.  
+2. Im Tab **„Lovelace Dashboards"** auf **„Ressourcen"** klicken.  
+3. Auf **„Ressource hinzufügen"** klicken.  
+4. Folgende Ressourcen hinzufügen:
+   - **URL:** `/local/prism-heat.js`  
+     **Typ:** `JavaScript-Modul`
+   - **URL:** `/local/prism-button.js`  
+     **Typ:** `JavaScript-Modul`
+5. Home Assistant neu starten, damit die Custom Cards geladen werden.
+
+> **Hinweis:** Die Custom Cards befinden sich im Ordner `custom-components/` dieses Repositories und müssen in `/config/www/` kopiert werden.
 
 ---
 
@@ -157,7 +175,8 @@ Diese existieren in deinem System in der Regel nicht und müssen durch deine **e
 - **Klima**  
   - `climate.living_room`  
   - `climate.office`  
-  - `climate.bathroom_upstairs`
+  - `climate.bathroom_upstairs`  
+  > **Hinweis:** Diese werden in der Regel mit der `prism-heat` Custom Card verwendet.
 
 - **Spezial-Entitäten**  
   - `calendar.family_shared` – dein Kalender  
@@ -165,7 +184,28 @@ Diese existieren in deinem System in der Regel nicht und müssen durch deine **e
   - `lock.garden_gate` – dein Smart Lock  
   - `input_select.robot_vacuum_status` – Helper für deinen Saugroboter
 
-> **Tipp:** Ersetze die Platzhalter konsequent per „Suchen & Ersetzen“, um Fehler zu vermeiden.
+> **Tipp:** Ersetze die Platzhalter konsequent per „Suchen & Ersetzen", um Fehler zu vermeiden.
+
+### Custom Cards konfigurieren
+
+Das Dashboard nutzt zwei benutzerdefinierte Karten:
+
+**`prism-heat`** – Thermostat-Knob-Karte:
+```yaml
+- type: custom:prism-heat
+  entity: climate.living_room
+  name: Wohnzimmer
+  color: "#fb923c"  # Optional: Farbe des Rings und Indikators
+```
+
+**`prism-button`** – Entity-Button-Karte:
+```yaml
+- type: custom:prism-button
+  entity: light.living_room_light
+  name: Wohnzimmer
+  icon: mdi:lightbulb
+  layout: horizontal  # oder "vertical"
+```
 
 ### Styles ändern
 

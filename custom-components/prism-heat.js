@@ -1,5 +1,5 @@
 
-class HeatingCard extends HTMLElement {
+class PrismHeatCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -221,7 +221,7 @@ class HeatingCard extends HTMLElement {
   }
 
   render() {
-    console.log('HeatingCard render v2');
+    console.log('PrismHeatCard render v2');
     const isHeating = this._state === 'heat';
     const isAuto = this._state === 'auto';
     const isCooling = this._state === 'cool';
@@ -424,7 +424,7 @@ class HeatingCard extends HTMLElement {
 }
 
 // Define Editor FIRST so it's available when getConfigElement() is called
-class HeatingCardEditor extends HTMLElement {
+class PrismHeatCardEditor extends HTMLElement {
   constructor() {
     super();
     this._config = {};
@@ -432,7 +432,7 @@ class HeatingCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    console.log('[HeatingCardEditor] setConfig() called with:', config);
+    console.log('[PrismHeatCardEditor] setConfig() called with:', config);
     const oldConfig = this._config;
     this._config = config || {};
     
@@ -457,7 +457,7 @@ class HeatingCardEditor extends HTMLElement {
   }
 
   set hass(hass) {
-    console.log('[HeatingCardEditor] hass set');
+    console.log('[PrismHeatCardEditor] hass set');
     this._hass = hass;
     if (this._config && !this.querySelector('ha-entity-picker')) {
       this.render();
@@ -471,7 +471,7 @@ class HeatingCardEditor extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('[HeatingCardEditor] connectedCallback() called');
+    console.log('[PrismHeatCardEditor] connectedCallback() called');
     if (!this._config) {
       this._config = {};
     }
@@ -508,11 +508,11 @@ class HeatingCardEditor extends HTMLElement {
 
   render() {
     if (!this._hass) {
-      console.log('[HeatingCardEditor] render() called but no hass yet');
+      console.log('[PrismHeatCardEditor] render() called but no hass yet');
       return;
     }
 
-    console.log('[HeatingCardEditor] render() called with config:', this._config);
+    console.log('[PrismHeatCardEditor] render() called with config:', this._config);
 
     // Always recreate to ensure proper initialization
     this.innerHTML = `
@@ -544,9 +544,9 @@ class HeatingCardEditor extends HTMLElement {
     setTimeout(() => {
       const picker = this.querySelector('ha-entity-picker');
       if (picker) {
-        console.log('[HeatingCardEditor] Setting up entity picker');
-        console.log('[HeatingCardEditor] Picker element:', picker);
-        console.log('[HeatingCardEditor] Picker computed style:', window.getComputedStyle(picker));
+        console.log('[PrismHeatCardEditor] Setting up entity picker');
+        console.log('[PrismHeatCardEditor] Picker element:', picker);
+        console.log('[PrismHeatCardEditor] Picker computed style:', window.getComputedStyle(picker));
         
         // Set hass first, then other properties
         picker.hass = this._hass;
@@ -565,7 +565,7 @@ class HeatingCardEditor extends HTMLElement {
         }
         if (picker.updateComplete) {
           picker.updateComplete.then(() => {
-            console.log('[HeatingCardEditor] Entity picker update complete');
+            console.log('[PrismHeatCardEditor] Entity picker update complete');
           });
         }
         
@@ -574,41 +574,41 @@ class HeatingCardEditor extends HTMLElement {
           picker.removeEventListener('value-changed', this._pickerHandler);
         }
         this._pickerHandler = (e) => {
-          console.log('[HeatingCardEditor] Entity changed:', e.detail.value);
+          console.log('[PrismHeatCardEditor] Entity changed:', e.detail.value);
           const newConfig = { ...this._config, entity: e.detail.value };
           this._config = newConfig; // Update local config
           this.configChanged(newConfig);
         };
         picker.addEventListener('value-changed', this._pickerHandler);
-        console.log('[HeatingCardEditor] Entity picker initialized with value:', picker.value);
-        console.log('[HeatingCardEditor] Entity picker parent:', picker.parentElement);
+        console.log('[PrismHeatCardEditor] Entity picker initialized with value:', picker.value);
+        console.log('[PrismHeatCardEditor] Entity picker parent:', picker.parentElement);
       } else {
-        console.error('[HeatingCardEditor] Entity picker not found in DOM!');
+        console.error('[PrismHeatCardEditor] Entity picker not found in DOM!');
       }
 
       const nameField = this.querySelector('ha-textfield[label="Name (Optional)"]');
       if (nameField) {
-        console.log('[HeatingCardEditor] Setting up name field');
+        console.log('[PrismHeatCardEditor] Setting up name field');
         nameField.value = this._config?.name || '';
         // Remove old listener if exists
         if (this._nameFieldHandler) {
           nameField.removeEventListener('input', this._nameFieldHandler);
         }
         this._nameFieldHandler = (e) => {
-          console.log('[HeatingCardEditor] Name changed:', e.target.value);
+          console.log('[PrismHeatCardEditor] Name changed:', e.target.value);
           const newConfig = { ...this._config, name: e.target.value };
           this._config = newConfig; // Update local config
           this.configChanged(newConfig);
         };
         nameField.addEventListener('input', this._nameFieldHandler);
       } else {
-        console.error('[HeatingCardEditor] Name field not found!');
+        console.error('[PrismHeatCardEditor] Name field not found!');
       }
 
       const colorField = this.querySelector('ha-textfield[label="Ring Color (Hex, e.g. #fb923c)"]');
       const colorPicker = this.querySelector('input[type="color"]');
       if (colorField && colorPicker) {
-        console.log('[HeatingCardEditor] Setting up color fields');
+        console.log('[PrismHeatCardEditor] Setting up color fields');
         const currentColor = this._config?.color || '#fb923c';
         colorField.value = currentColor;
         colorPicker.value = currentColor;
@@ -619,7 +619,7 @@ class HeatingCardEditor extends HTMLElement {
         }
         this._colorFieldHandler = (e) => {
           const newColor = e.target.value;
-          console.log('[HeatingCardEditor] Color changed (text):', newColor);
+          console.log('[PrismHeatCardEditor] Color changed (text):', newColor);
           colorPicker.value = newColor;
           const newConfig = { ...this._config, color: newColor };
           this._config = newConfig; // Update local config
@@ -633,7 +633,7 @@ class HeatingCardEditor extends HTMLElement {
         }
         this._colorPickerHandler = (e) => {
           const newColor = e.target.value;
-          console.log('[HeatingCardEditor] Color changed (picker):', newColor);
+          console.log('[PrismHeatCardEditor] Color changed (picker):', newColor);
           colorField.value = newColor;
           const newConfig = { ...this._config, color: newColor };
           this._config = newConfig; // Update local config
@@ -641,23 +641,23 @@ class HeatingCardEditor extends HTMLElement {
         };
         colorPicker.addEventListener('input', this._colorPickerHandler);
       } else {
-        console.error('[HeatingCardEditor] Color fields not found!');
+        console.error('[PrismHeatCardEditor] Color fields not found!');
       }
     }, 0);
   }
 }
 
 // Register Editor first
-customElements.define("heating-card-editor", HeatingCardEditor);
+customElements.define("prism-heat-editor", PrismHeatCardEditor);
 
 // Then register the card
-customElements.define('heating-card', HeatingCard);
+customElements.define('prism-heat', PrismHeatCard);
 
 // Register with customCards
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "heating-card",
-  name: "Heating Card",
+  type: "prism-heat",
+  name: "Prism Heat",
   preview: true,
   description: "A custom thermostat knob card"
 });

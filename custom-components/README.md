@@ -13,7 +13,30 @@
 <img width="361" height="1192" alt="sidebar" src="https://github.com/user-attachments/assets/0bca6980-e4d2-463c-9073-692f0c626945" />
 
 
-## heating-card
+## prism-heat
 
-![heating-card](https://github.com/user-attachments/assets/5a3a4adb-b228-4696-8dff-768e417fc38f)
+![prism-heat](https://github.com/user-attachments/assets/5a3a4adb-b228-4696-8dff-768e417fc38f)
+
+Eine benutzerdefinierte Thermostat-Knob-Karte mit Glassmorphism-Design.
+
+**Verwendung:**
+```yaml
+- type: custom:prism-heat
+  entity: climate.living_room
+  name: Wohnzimmer
+  color: "#fb923c"
+```
+
+## prism-button
+
+Eine Glassmorphism-stylisierte Entity-Button-Karte mit Neumorphismus-Effekten und leuchtendem Icon-Kreis.
+
+**Verwendung:**
+```yaml
+- type: custom:prism-button
+  entity: light.living_room_light
+  name: Wohnzimmer
+  icon: mdi:lightbulb
+  layout: horizontal
+```
 
