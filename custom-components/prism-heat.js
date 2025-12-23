@@ -251,6 +251,9 @@ class PrismHeatCard extends HTMLElement {
         currentModeText = 'Cool';
         iconClass = 'active cool';
     }
+    if(this._state === 'off') {
+        iconClass = 'active off';
+    }
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -295,6 +298,10 @@ class PrismHeatCard extends HTMLElement {
         .icon-box.active.cool {
             background: rgba(96, 165, 250, 0.2); color: #60a5fa;
             filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.6));
+        }
+        .icon-box.active.off {
+            background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4);
+            filter: none;
         }
 
         .title-area { flex: 1; min-width: 0; overflow: hidden; }

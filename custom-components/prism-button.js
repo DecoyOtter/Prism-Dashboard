@@ -49,9 +49,7 @@ class PrismButtonCard extends HTMLElement {
     if (!this._config.layout) {
       this._config.layout = "horizontal";
     }
-    if (this._hass) {
-      this._updateCard();
-    }
+    this._updateCard();
   }
 
   set hass(hass) {
@@ -66,7 +64,7 @@ class PrismButtonCard extends HTMLElement {
   }
 
   connectedCallback() {
-    if (this._config && this._hass) {
+    if (this._config) {
       this._updateCard();
     }
   }
@@ -130,18 +128,13 @@ class PrismButtonCard extends HTMLElement {
   }
 
   _updateCard() {
-    if (!this._hass || !this._config || !this._config.entity) return;
+    if (!this._config || !this._config.entity) return;
     
-    const entity = this._hass.states[this._config.entity];
-    if (!entity) {
-      this.innerHTML = '<div>Entity not found</div>';
-      return;
-    }
-
-    const isActive = this._isActive();
-    const iconColor = this._getIconColor();
-    const state = entity.state;
-    const friendlyName = this._config.name || entity.attributes.friendly_name || this._config.entity;
+    const entity = this._hass ? this._hass.states[this._config.entity] : null;
+    const isActive = entity ? this._isActive() : false;
+    const iconColor = entity ? this._getIconColor() : null;
+    const state = entity ? entity.state : 'off';
+    const friendlyName = this._config.name || (entity ? entity.attributes.friendly_name : null) || this._config.entity;
     const layout = this._config.layout || 'horizontal';
 
     this.innerHTML = `
