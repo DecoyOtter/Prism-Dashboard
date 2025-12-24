@@ -7,6 +7,7 @@ class PrismLedLightCard extends HTMLElement {
       this.localBrightness = 0;
       this.localColor = '#ffffff';
       this.localTemp = 50; // 0-100
+      this.userModeChange = false; // Track if user manually changed mode
     }
 
     static getStubConfig() {
@@ -51,21 +52,24 @@ class PrismLedLightCard extends HTMLElement {
           if (attr.brightness !== undefined) {
               this.localBrightness = Math.round((attr.brightness / 255) * 100);
           }
-          // Try to determine mode and color from attributes
-          if (attr.color_mode === 'color_temp') {
-              this.mode = 'white';
-              if (attr.color_temp !== undefined) {
-                  // Map mireds to 0-100 (rough approximation: 154-500 mireds -> 0-100%)
-                  const mireds = attr.color_temp;
-                  const minMireds = 154; // ~6500K (cold)
-                  const maxMireds = 500; // ~2000K (warm)
-                  this.localTemp = Math.max(0, Math.min(100, ((mireds - minMireds) / (maxMireds - minMireds)) * 100));
-              }
-          } else {
-              this.mode = 'color';
-              if (attr.rgb_color && Array.isArray(attr.rgb_color) && attr.rgb_color.length >= 3) {
-                  const [r, g, b] = attr.rgb_color;
-                  this.localColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+          // Only auto-update mode if user hasn't manually changed it
+          if (!this.userModeChange) {
+              // Try to determine mode and color from attributes
+              if (attr.color_mode === 'color_temp') {
+                  this.mode = 'white';
+                  if (attr.color_temp !== undefined) {
+                      // Map mireds to 0-100 (rough approximation: 154-500 mireds -> 0-100%)
+                      const mireds = attr.color_temp;
+                      const minMireds = 154; // ~6500K (cold)
+                      const maxMireds = 500; // ~2000K (warm)
+                      this.localTemp = Math.max(0, Math.min(100, ((mireds - minMireds) / (maxMireds - minMireds)) * 100));
+                  }
+              } else {
+                  this.mode = 'color';
+                  if (attr.rgb_color && Array.isArray(attr.rgb_color) && attr.rgb_color.length >= 3) {
+                      const [r, g, b] = attr.rgb_color;
+                      this.localColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                  }
               }
           }
       }
@@ -100,6 +104,7 @@ class PrismLedLightCard extends HTMLElement {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.mode = e.currentTarget.dataset.mode;
+                this.userModeChange = true; // Mark that user manually changed mode
                 this.render();
             });
         });
@@ -292,7 +297,7 @@ class PrismLedLightCard extends HTMLElement {
     }
   
     render() {
-      if (!this.config || !this.config.entity) return;
+      if (!this.config) return;
       
       // Render preview even if entity doesn't exist
       const state = this._entity ? this._entity.state : 'off';
@@ -360,6 +365,13 @@ class PrismLedLightCard extends HTMLElement {
               border: 1px solid rgba(0,0,0,0.05);
               box-shadow: 0 4px 6px rgba(0,0,0,0.05);
           }
+          .power-btn ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
+          }
           .power-btn.active {
               background: rgba(255, 255, 255, 0.9);
               box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
@@ -369,18 +381,23 @@ class PrismLedLightCard extends HTMLElement {
           
           /* Mode Switcher */
           .mode-switch {
-              display: flex; padding: 4px; background: rgba(240, 240, 240, 0.8);
+              display: flex; padding: 4px; background: rgba(240, 240, 240, 0.9);
+              box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
               border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);
+              border-top: 1px solid rgba(255,255,255,0.6);
               position: relative;
           }
           .mode-btn {
               flex: 1; padding: 6px; border-radius: 8px; text-align: center;
               font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
               cursor: pointer; transition: all 0.2s; color: rgba(0,0,0,0.4);
+              background: transparent;
           }
           .mode-btn.active {
-              background: rgba(255,255,255,0.9); color: #1a1a1a;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              background: rgba(255, 255, 255, 0.95);
+              box-shadow: inset 2px 2px 5px rgba(255,255,255,0.9), inset -1px -1px 2px rgba(0,0,0,0.1);
+              border-top: 1px solid rgba(255,255,255,0.7);
+              color: #1a1a1a;
           }
           
           /* Wheel */
