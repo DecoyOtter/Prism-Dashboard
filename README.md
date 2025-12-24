@@ -6,12 +6,12 @@
 
 <p align="center">
   <strong>Dashboard Konfiguration</strong><br>
-  <img src="https://github.com/user-attachments/assets/6048858f-4ba0-40a8-95b8-7787cde1d8ab" alt="Prism Dashboard - Dashboard Konfiguration" width="80%">
+  <img src="https://github.com/user-attachments/assets/6048858f-4ba0-40a8-95b8-7787cde1d8ab" alt="Prism Dashboard - Dashboard Konfiguration" width="85%">
 </p>
 
 <p align="center">
   <strong>Custom Cards</strong><br>
-  <img src="custom-components/images/prism-dashboard-new.png" alt="Prism Dashboard - Custom Cards" width="80%">
+  <img src="custom-components/images/prism-dashboard-new.png" alt="Prism Dashboard - Custom Cards" width="85%">
 </p>
 
 ---
