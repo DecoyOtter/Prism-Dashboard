@@ -171,11 +171,13 @@ Eine Bambu Lab 3D-Drucker-Karte mit AMS (Automatic Material System) Support, Gla
 **Verwendung:**
 ```yaml
 - type: custom:prism-bambu
-  entity: sensor.bambu_printer           # Sensor/Entität mit Druckerstatus & Attributen
+  entity: sensor.bambu_lab_printer_print_status  # Print Status Entity von ha-bambulab
   name: Bambu Lab Printer
-  camera_entity: camera.bambu_printer    # Optional: Drucker-Kamera
+  camera_entity: camera.bambu_lab_printer_chamber  # Optional: Chamber Camera (P1/A1) oder X1 mit LAN Mode
   image: /local/custom-components/images/prism-bambu-pic.png
 ```
+
+**Hinweis:** Die Karte arbeitet mit der [ha-bambulab Integration](https://github.com/greghesp/ha-bambulab) und nutzt die `sensor.*_print_status` Entity als Haupt-Entity. Basierend auf dem Device-Namen werden automatisch alle anderen Sensoren gefunden (Temperaturen, Fans, Layer, AMS, etc.). Siehe [ha-bambulab Entities Dokumentation](https://docs.page/greghesp/ha-bambulab/entities) für Details.
 
 **Features:**
 - ✅ AMS Support: Zeigt alle 4 AMS-Slots mit Farb-Visualisierung
@@ -187,15 +189,20 @@ Eine Bambu Lab 3D-Drucker-Karte mit AMS (Automatic Material System) Support, Gla
 - ✅ Fan-Geschwindigkeiten (Part & Aux)
 - ✅ Layer-Informationen und Fortschrittsbalken
 
-**Unterstützte Attribute:**
-- `progress` - Druckfortschritt in %
-- `print_time_left` - Verbleibende Zeit
-- `nozzle_temp` / `target_nozzle_temp` - Nozzle Temperaturen
-- `bed_temp` / `target_bed_temp` - Bed Temperaturen
-- `chamber_temp` - Chamber Temperatur
-- `fan_speed` / `aux_fan_speed` - Fan Geschwindigkeiten
-- `current_layer` / `total_layers` - Layer Information
-- `ams` oder `ams_data` - AMS Slot Daten (Array mit `type`, `color`, `remaining`, `active`)
+**Automatisch erkannte Sensoren (basierend auf Device-Name):**
+
+Die Karte findet automatisch alle Sensoren basierend auf dem Device-Namen aus der `print_status` Entity:
+
+- **Print Data:** `sensor.{device}_print_progress`, `sensor.{device}_remaining_time`, `sensor.{device}_end_time`
+- **Temperatures:** `sensor.{device}_nozzle`, `sensor.{device}_target_nozzle`, `sensor.{device}_bed`, `sensor.{device}_target_bed`, `sensor.{device}_chamber` (nicht auf A1/A1 Mini)
+- **Fans:** `sensor.{device}_cooling`, `sensor.{device}_aux`, `sensor.{device}_chamber` (nicht auf A1/A1 Mini)
+- **Layer:** `sensor.{device}_current_layer`, `sensor.{device}_total_layer_count`
+- **AMS:** `sensor.{device}_ams_active_tray`, `sensor.{device}_ams_active_tray_index`, `sensor.{device}_ams_tray_1` bis `sensor.{device}_ams_tray_4`
+
+**Beispiel:** Wenn die Entity `sensor.bambu_lab_printer_print_status` ist, werden automatisch `sensor.bambu_lab_printer_nozzle`, `sensor.bambu_lab_printer_bed`, etc. gefunden.
+
+**ha-bambulab Integration:**
+Die Karte ist optimiert für die [ha-bambulab Integration](https://github.com/greghesp/ha-bambulab) und nutzt die [standard Sensor-Entities](https://docs.page/greghesp/ha-bambulab/entities) dieser Integration.
 
 ---
 

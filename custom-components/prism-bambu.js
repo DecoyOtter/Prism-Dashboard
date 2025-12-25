@@ -8,9 +8,9 @@ class PrismBambuCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      entity: 'sensor.bambu_printer',
+      entity: 'sensor.bambu_lab_printer_print_status',
       name: 'Bambu Lab Printer',
-      camera_entity: 'camera.bambu_printer',
+      camera_entity: 'camera.bambu_lab_printer_chamber',
       image: '/local/custom-components/images/prism-bambu-pic.png'
     };
   }
@@ -20,9 +20,9 @@ class PrismBambuCard extends HTMLElement {
       schema: [
         {
           name: 'entity',
-          label: 'Printer entity',
+          label: 'Print Status entity (sensor.*_print_status)',
           required: true,
-          selector: { entity: {} }
+          selector: { entity: { domain: 'sensor' } }
         },
         {
           name: 'name',
@@ -31,7 +31,7 @@ class PrismBambuCard extends HTMLElement {
         },
         {
           name: 'camera_entity',
-          label: 'Camera entity',
+          label: 'Camera entity (camera.*_chamber)',
           selector: { entity: { domain: 'camera' } }
         },
         {
@@ -143,58 +143,119 @@ class PrismBambuCard extends HTMLElement {
     const entityId = this.config.entity;
     const state = this._hass.states[entityId];
     const stateStr = state ? state.state : 'unavailable';
-    const attributes = state ? state.attributes : {};
-
-    // Standardized attributes for Bambu integration
-    const progress = attributes.progress || 0;
-    const printTimeLeft = attributes.print_time_left || '0m';
-    const printEndTime = attributes.print_end_time || '--:--';
     
-    // Temperatures
-    const nozzleTemp = attributes.nozzle_temp || 0;
-    const targetNozzleTemp = attributes.target_nozzle_temp || 0;
-    const bedTemp = attributes.bed_temp || 0;
-    const targetBedTemp = attributes.target_bed_temp || 0;
-    const chamberTemp = attributes.chamber_temp || 0;
+    // Extract device name from entity ID
+    // Supports: sensor.{device}_print_status, sensor.{device}_print_progress, or any sensor.{device}_*
+    let deviceName = '';
+    if (entityId.startsWith('sensor.')) {
+      const parts = entityId.replace('sensor.', '').split('_');
+      // Remove common suffixes to get device name
+      const suffixes = ['print_status', 'print_progress', 'nozzle', 'bed', 'chamber', 'cooling', 'aux'];
+      // Find where the device name ends (before the first known suffix)
+      let deviceParts = [];
+      for (let i = 0; i < parts.length; i++) {
+        if (suffixes.includes(parts[i])) {
+          break;
+        }
+        deviceParts.push(parts[i]);
+      }
+      deviceName = deviceParts.length > 0 ? deviceParts.join('_') : parts.slice(0, -1).join('_');
+    } else {
+      // Fallback: try to extract from any entity
+      deviceName = entityId.split('.').pop().split('_').slice(0, -1).join('_');
+    }
     
-    // Fans
-    const partFanSpeed = attributes.fan_speed || 0;
-    const auxFanSpeed = attributes.aux_fan_speed || 0;
+    // If we couldn't extract, use a default pattern
+    if (!deviceName || deviceName === '') {
+      deviceName = entityId.replace(/^sensor\./, '').replace(/_print_status$/, '').replace(/_print_progress$/, '');
+    }
     
-    const currentLayer = attributes.current_layer || 0;
-    const totalLayers = attributes.total_layers || 0;
-    const name = this.config.name || attributes.friendly_name || 'Bambu Lab Printer';
+    // Find related sensor entities based on device name
+    const getSensor = (suffix) => {
+      const sensorId = `sensor.${deviceName}_${suffix}`;
+      const sensorState = this._hass.states[sensorId];
+      return sensorState ? parseFloat(sensorState.state) || 0 : 0;
+    };
+    
+    const getSensorState = (suffix) => {
+      const sensorId = `sensor.${deviceName}_${suffix}`;
+      const sensorState = this._hass.states[sensorId];
+      return sensorState ? sensorState.state : null;
+    };
+    
+    // Print Data (from ha-bambulab documentation)
+    const progress = getSensor('print_progress');
+    const printTimeLeft = getSensorState('remaining_time') || '0m';
+    const printEndTime = getSensorState('end_time') || '--:--';
+    
+    // Temperatures (from ha-bambulab documentation)
+    const nozzleTemp = getSensor('nozzle');
+    const targetNozzleTemp = getSensor('target_nozzle');
+    const bedTemp = getSensor('bed');
+    const targetBedTemp = getSensor('target_bed');
+    const chamberTemp = getSensor('chamber') || 0; // Not on A1/A1 Mini
+    
+    // Fans (from ha-bambulab documentation)
+    const partFanSpeed = getSensor('cooling') || 0;
+    const auxFanSpeed = getSensor('aux') || 0;
+    
+    // Layer info (from ha-bambulab documentation)
+    const currentLayer = getSensor('current_layer') || 0;
+    const totalLayers = getSensor('total_layer_count') || 0;
+    
+    const name = this.config.name || (state ? state.attributes.friendly_name : null) || 'Bambu Lab Printer';
     
     // Camera
     const cameraEntity = this.config.camera_entity;
     const cameraState = cameraEntity ? this._hass.states[cameraEntity] : null;
     const cameraImage = cameraState?.attributes?.entity_picture || null;
     
-    // Image path
-    const printerImg = this.config.image || '/local/custom-components/images/prism-bambu-pic.png';
+    // Image path - try config first, then fallback to default
+    let printerImg = this.config.image;
+    if (!printerImg) {
+      // Try to get from www path first, then fallback
+      printerImg = '/local/custom-components/images/prism-bambu-pic.png';
+    }
 
-    // AMS Data - try to get from attributes, fallback to preview
+    // AMS Data - from ha-bambulab sensor entities
+    // Get active tray index
+    const activeTrayIndex = getSensor('ams_active_tray_index') || 0;
+    const activeTray = getSensorState('ams_active_tray') || null;
+    
+    // Get AMS tray data (tray_1, tray_2, tray_3, tray_4)
     let amsData = [];
-    if (attributes.ams && Array.isArray(attributes.ams)) {
-      amsData = attributes.ams.map((ams, index) => ({
-        id: index + 1,
-        type: ams.type || 'PLA',
-        color: ams.color || '#FF4444',
-        remaining: ams.remaining || 0,
-        active: ams.active || false,
-        empty: !ams.type || ams.remaining === 0
-      }));
-    } else if (attributes.ams_data && Array.isArray(attributes.ams_data)) {
-      amsData = attributes.ams_data.map((ams, index) => ({
-        id: index + 1,
-        type: ams.filament_type || ams.type || 'PLA',
-        color: ams.filament_color || ams.color || '#FF4444',
-        remaining: ams.remaining || ams.remain || 0,
-        active: ams.is_active || ams.active || false,
-        empty: !ams.filament_type && !ams.type
-      }));
-    } else {
-      // Preview data
+    for (let i = 1; i <= 4; i++) {
+      const trayId = `sensor.${deviceName}_ams_tray_${i}`;
+      const trayState = this._hass.states[trayId];
+      
+      if (trayState && trayState.attributes) {
+        const attrs = trayState.attributes;
+        const isEmpty = attrs.empty === true || attrs.empty === 'true';
+        const isActive = (activeTrayIndex === i) || (activeTray === `Tray ${i}`);
+        
+        amsData.push({
+          id: i,
+          type: attrs.type || attrs.name || '',
+          color: attrs.color || '#666666',
+          remaining: isEmpty ? 0 : (parseFloat(attrs.remaining_filament) || 0),
+          active: isActive,
+          empty: isEmpty
+        });
+      } else {
+        // Empty slot
+        amsData.push({
+          id: i,
+          type: '',
+          color: '#666666',
+          remaining: 0,
+          active: false,
+          empty: true
+        });
+      }
+    }
+    
+    // If no AMS data found, use preview data
+    if (amsData.every(slot => slot.empty)) {
       amsData = [
         { id: 1, type: 'PLA', color: '#FF4444', remaining: 85, active: false },
         { id: 2, type: 'PETG', color: '#4488FF', remaining: 42, active: true },
@@ -310,6 +371,8 @@ class PrismBambuCard extends HTMLElement {
         .printer-icon {
             width: 40px;
             height: 40px;
+            min-width: 40px;
+            min-height: 40px;
             border-radius: 50%;
             background-color: rgba(0, 174, 66, 0.1);
             display: flex;
@@ -318,6 +381,14 @@ class PrismBambuCard extends HTMLElement {
             color: #00AE42;
             border: 1px solid rgba(0, 174, 66, 0.2);
             box-shadow: inset 0 0 10px rgba(0, 174, 66, 0.1);
+            flex-shrink: 0;
+        }
+        .printer-icon ha-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .title {
             font-size: 1.125rem;
@@ -454,6 +525,8 @@ class PrismBambuCard extends HTMLElement {
             z-index: 40;
             width: 32px;
             height: 32px;
+            min-width: 32px;
+            min-height: 32px;
             border-radius: 50%;
             background-color: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
@@ -464,6 +537,14 @@ class PrismBambuCard extends HTMLElement {
             border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .view-toggle ha-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .view-toggle:hover {
             background-color: rgba(0, 0, 0, 0.8);
@@ -526,8 +607,18 @@ class PrismBambuCard extends HTMLElement {
         .pill-icon-container {
             width: 24px;
             height: 24px;
+            min-width: 24px;
+            min-height: 24px;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .pill-icon-container ha-icon {
+            width: 14px;
+            height: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -623,6 +714,13 @@ class PrismBambuCard extends HTMLElement {
             font-weight: 700;
             font-size: 14px;
         }
+        .btn ha-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .btn-secondary {
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -704,18 +802,21 @@ class PrismBambuCard extends HTMLElement {
                 <div class="view-toggle">
                     <ha-icon icon="${data.cameraEntity ? 'mdi:video' : 'mdi:image'}"></ha-icon>
                 </div>
-                <img src="${data.printerImg}" class="printer-img" />
+                <img src="${data.printerImg}" class="printer-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 14px;">
+                  <ha-icon icon="mdi:printer-3d" style="width: 64px; height: 64px;"></ha-icon>
+                </div>
                 
                 <div class="overlay-left">
                     <div class="overlay-pill">
-                        <div class="pill-icon-container"><ha-icon icon="mdi:fan" style="width: 12px; height: 12px;"></ha-icon></div>
+                        <div class="pill-icon-container"><ha-icon icon="mdi:fan"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.partFanSpeed}%</span>
                             <span class="pill-label">Part</span>
                         </div>
                     </div>
                     <div class="overlay-pill">
-                        <div class="pill-icon-container"><ha-icon icon="mdi:weather-windy" style="width: 12px; height: 12px;"></ha-icon></div>
+                        <div class="pill-icon-container"><ha-icon icon="mdi:weather-windy"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.auxFanSpeed}%</span>
                             <span class="pill-label">Aux</span>
@@ -725,21 +826,21 @@ class PrismBambuCard extends HTMLElement {
                 
                 <div class="overlay-right">
                     <div class="overlay-pill right">
-                        <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #F87171; width: 12px; height: 12px;"></ha-icon></div>
+                        <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #F87171;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.nozzleTemp}°</span>
                             <span class="pill-label">/${data.targetNozzleTemp}°</span>
                         </div>
                     </div>
                     <div class="overlay-pill right">
-                        <div class="pill-icon-container"><ha-icon icon="mdi:radiator" style="color: #FB923C; width: 12px; height: 12px;"></ha-icon></div>
+                        <div class="pill-icon-container"><ha-icon icon="mdi:radiator" style="color: #FB923C;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.bedTemp}°</span>
                             <span class="pill-label">/${data.targetBedTemp}°</span>
                         </div>
                     </div>
                     <div class="overlay-pill right">
-                        <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #4ade80; width: 12px; height: 12px;"></ha-icon></div>
+                        <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #4ade80;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.chamberTemp}°</span>
                             <span class="pill-label">Cham</span>
