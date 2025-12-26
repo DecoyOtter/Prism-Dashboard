@@ -2,6 +2,7 @@ class PrismVacuumCard extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
+      this._mapRefreshInterval = null;
     }
 
     static getStubConfig() {
@@ -22,6 +23,14 @@ class PrismVacuumCard extends HTMLElement {
           {
             name: "name",
             selector: { text: {} }
+          },
+          {
+            name: "map_camera",
+            selector: { entity: { domain: ["camera", "image"] } }
+          },
+          {
+            name: "show_status",
+            selector: { boolean: {} }
           }
         ]
       };
@@ -31,7 +40,10 @@ class PrismVacuumCard extends HTMLElement {
       if (!config.entity) {
         throw new Error('Please define an entity');
       }
-      this.config = config;
+      this.config = {
+        show_status: true,
+        ...config
+      };
     }
   
     set hass(hass) {
@@ -39,6 +51,12 @@ class PrismVacuumCard extends HTMLElement {
       if (this.config && this.config.entity) {
         const entity = hass.states[this.config.entity];
         this._entity = entity || null;
+        
+        // Get map camera entity if configured
+        if (this.config.map_camera) {
+          this._mapEntity = hass.states[this.config.map_camera] || null;
+        }
+        
         this.render();
       }
     }
@@ -50,6 +68,12 @@ class PrismVacuumCard extends HTMLElement {
     connectedCallback() {
       this.render();
       this.setupListeners();
+    }
+    
+    disconnectedCallback() {
+      if (this._mapRefreshInterval) {
+        clearInterval(this._mapRefreshInterval);
+      }
     }
   
     setupListeners() {
@@ -70,6 +94,15 @@ class PrismVacuumCard extends HTMLElement {
             homeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.handleAction('home');
+            });
+        }
+        
+        // Locate
+        const locateBtn = root.querySelector('#locate-btn');
+        if(locateBtn) {
+            locateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleAction('locate');
             });
         }
         
@@ -110,6 +143,8 @@ class PrismVacuumCard extends HTMLElement {
         }
       } else if (action === 'home') {
         service = 'return_to_base';
+      } else if (action === 'locate') {
+        service = 'locate';
       } else if (action === 'set_speed') {
         service = 'set_fan_speed';
         data.fan_speed = value;
@@ -130,6 +165,109 @@ class PrismVacuumCard extends HTMLElement {
           }));
       }
     }
+    
+    // Get fan speeds from entity or use defaults
+    getFanSpeeds() {
+      const attr = this._entity ? this._entity.attributes : {};
+      
+      // Try to get fan_speed_list from entity attributes (most integrations provide this)
+      if (attr.fan_speed_list && Array.isArray(attr.fan_speed_list) && attr.fan_speed_list.length > 0) {
+        return attr.fan_speed_list;
+      }
+      
+      // Fallback defaults that work with most integrations
+      // Order: lowest to highest suction power
+      const defaultSpeeds = ["Silent", "Standard", "Medium", "Turbo"];
+      return defaultSpeeds;
+    }
+    
+    // Get display label for speed (shorter labels for UI)
+    getSpeedLabel(speed) {
+      const labels = {
+        // Roborock / Xiaomi
+        'silent': 'Silent',
+        'quiet': 'Silent',
+        'balanced': 'Std',
+        'standard': 'Std',
+        'medium': 'Med',
+        'turbo': 'Turbo',
+        'max': 'Max',
+        'max+': 'Max+',
+        'off': 'Off',
+        // Dreame
+        'quiet': 'Silent',
+        'strong': 'Strong',
+        // Valetudo
+        'min': 'Min',
+        'low': 'Low',
+        'high': 'High',
+        // Generic
+        'auto': 'Auto',
+        'gentle': 'Gentle',
+        'normal': 'Normal',
+        'power': 'Power',
+        'mop': 'Mop'
+      };
+      
+      const lowerSpeed = speed.toLowerCase();
+      return labels[lowerSpeed] || speed.charAt(0).toUpperCase() + speed.slice(1).substring(0, 5);
+    }
+    
+    // Get battery icon based on level
+    getBatteryIcon(level) {
+      if (level >= 95) return 'mdi:battery';
+      if (level >= 85) return 'mdi:battery-90';
+      if (level >= 75) return 'mdi:battery-80';
+      if (level >= 65) return 'mdi:battery-70';
+      if (level >= 55) return 'mdi:battery-60';
+      if (level >= 45) return 'mdi:battery-50';
+      if (level >= 35) return 'mdi:battery-40';
+      if (level >= 25) return 'mdi:battery-30';
+      if (level >= 15) return 'mdi:battery-20';
+      if (level >= 5) return 'mdi:battery-10';
+      return 'mdi:battery-outline';
+    }
+    
+    // Get battery color based on level
+    getBatteryColor(level, isCharging) {
+      if (isCharging) return '#facc15'; // Yellow when charging
+      if (level >= 50) return '#4ade80'; // Green
+      if (level >= 20) return '#fb923c'; // Orange
+      return '#ef4444'; // Red
+    }
+    
+    // Get status text
+    getStatusText(state) {
+      const statusMap = {
+        'cleaning': 'Reinigt',
+        'docked': 'Angedockt',
+        'idle': 'Bereit',
+        'paused': 'Pausiert',
+        'returning': 'Fährt zurück',
+        'error': 'Fehler',
+        'off': 'Aus',
+        'unavailable': 'Nicht verfügbar'
+      };
+      return statusMap[state] || state;
+    }
+    
+    // Get map image URL
+    getMapUrl() {
+      if (!this._mapEntity || !this._hass) return null;
+      
+      const entityId = this.config.map_camera;
+      const domain = entityId.split('.')[0];
+      
+      if (domain === 'camera') {
+        // Camera entity - use camera proxy
+        return `/api/camera_proxy/${entityId}?token=${this._mapEntity.attributes.access_token || ''}&t=${Date.now()}`;
+      } else if (domain === 'image') {
+        // Image entity
+        return `/api/image_proxy/${entityId}?t=${Date.now()}`;
+      }
+      
+      return null;
+    }
   
     render() {
       if (!this.config || !this.config.entity) return;
@@ -139,16 +277,38 @@ class PrismVacuumCard extends HTMLElement {
       const state = this._entity ? this._entity.state : 'idle';
       const battery = attr.battery_level !== undefined ? attr.battery_level : 85; // Default for preview
       const name = this.config.name || (this._entity ? attr.friendly_name : null) || 'Vacuum';
-      const fanSpeed = attr.fan_speed || 'balanced';
+      const fanSpeed = attr.fan_speed || 'Standard';
+      const isCharging = attr.status === 'charging' || state === 'docked';
       
       const isCleaning = state === 'cleaning';
       const isReturning = state === 'returning';
       const isActive = isCleaning || isReturning;
       const isDocked = state === 'docked';
+      const isPaused = state === 'paused';
+      const hasError = state === 'error';
 
-      const speeds = ["quiet", "balanced", "turbo", "max"];
-      const currentSpeedIndex = speeds.indexOf(fanSpeed.toLowerCase());
+      // Get fan speeds from entity or defaults
+      const speeds = this.getFanSpeeds();
+      const currentSpeedIndex = speeds.findIndex(s => s.toLowerCase() === fanSpeed.toLowerCase());
+      
+      // Map URL if configured
+      const mapUrl = this.getMapUrl();
+      const showMap = this.config.map_camera && mapUrl;
   
+      // Battery icon and color
+      const batteryIcon = isCharging ? 'mdi:battery-charging' : this.getBatteryIcon(battery);
+      const batteryColor = this.getBatteryColor(battery, isCharging);
+      
+      // Status color
+      const getStatusColor = () => {
+        if (hasError) return '#ef4444';
+        if (isCleaning) return '#3b82f6';
+        if (isReturning) return '#f59e0b';
+        if (isPaused) return '#f59e0b';
+        if (isDocked) return '#4ade80';
+        return 'rgba(255,255,255,0.4)';
+      };
+
       this.shadowRoot.innerHTML = `
         <style>
           :host {
@@ -188,11 +348,18 @@ class PrismVacuumCard extends HTMLElement {
           
           .icon-box {
               width: 48px; height: 48px; border-radius: 50%;
-              background: ${isActive ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)'}; 
-              color: ${isActive ? '#60a5fa' : 'rgba(255,255,255,0.4)'};
+              background: ${isActive ? 'rgba(59, 130, 246, 0.2)' : hasError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)'}; 
+              color: ${isActive ? '#60a5fa' : hasError ? '#ef4444' : 'rgba(255,255,255,0.4)'};
               display: flex; align-items: center; justify-content: center;
               transition: all 0.5s ease;
               ${isActive ? 'filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));' : ''}
+              ${hasError ? 'filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));' : ''}
+          }
+          .icon-box ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              line-height: 0;
           }
           .icon-spin {
               animation: ${isActive ? 'spin 3s linear infinite' : 'none'};
@@ -203,7 +370,66 @@ class PrismVacuumCard extends HTMLElement {
           .title { font-size: 18px; font-weight: 700; color: #e0e0e0; line-height: 1.2; }
           .subtitle { 
               font-size: 12px; font-weight: 500; color: #999; margin-top: 2px;
-              display: flex; align-items: center; gap: 4px;
+              display: flex; align-items: center; gap: 8px;
+          }
+          .subtitle ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              line-height: 0;
+              flex-shrink: 0;
+          }
+          .subtitle span {
+              line-height: 1;
+          }
+          .battery-info {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+          }
+          .status-badge {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              padding: 2px 6px;
+              border-radius: 8px;
+              background: rgba(255,255,255,0.05);
+              font-size: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.3px;
+          }
+          .status-dot {
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background: ${getStatusColor()};
+              ${isActive ? 'animation: pulse 2s infinite;' : ''}
+          }
+          @keyframes pulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.5; }
+          }
+          
+          .header-right {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+          }
+          
+          .action-btn {
+              width: 36px; height: 36px; border-radius: 50%;
+              display: flex; align-items: center; justify-content: center;
+              transition: all 0.2s; cursor: pointer;
+              border: 1px solid rgba(255,255,255,0.05);
+              background: rgba(255,255,255,0.05);
+              color: rgba(255,255,255,0.4);
+          }
+          .action-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+          .action-btn ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              line-height: 0;
           }
           
           .play-btn {
@@ -211,6 +437,12 @@ class PrismVacuumCard extends HTMLElement {
               display: flex; align-items: center; justify-content: center;
               transition: all 0.2s; cursor: pointer;
               border: 1px solid rgba(255,255,255,0.05);
+          }
+          .play-btn ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              line-height: 0;
           }
           .play-btn.active {
               background: #141414;
@@ -233,6 +465,27 @@ class PrismVacuumCard extends HTMLElement {
               border-top: 1px solid rgba(0,0,0,0.4);
               position: relative; overflow: hidden;
               cursor: pointer;
+          }
+          
+          /* Map display */
+          .map-container {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+          }
+          .map-image {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              opacity: 0.9;
+          }
+          .map-overlay {
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(to bottom, rgba(20,20,20,0.3), transparent, rgba(20,20,20,0.5));
+              pointer-events: none;
           }
           
           .floor-grid {
@@ -266,15 +519,15 @@ class PrismVacuumCard extends HTMLElement {
           }
           .lidar-dot {
               width: 8px; height: 8px; border-radius: 50%;
-              background: rgba(59, 130, 246, 0.5);
-              box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+              background: ${hasError ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.5)'};
+              box-shadow: 0 0 5px ${hasError ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.5)'};
           }
           
           .led {
               position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
               width: 20px; height: 6px; border-radius: 10px;
-              background: ${isCleaning ? '#3b82f6' : 'rgba(255,255,255,0.1)'};
-              box-shadow: ${isCleaning ? '0 0 8px #3b82f6' : 'none'};
+              background: ${isCleaning ? '#3b82f6' : hasError ? '#ef4444' : 'rgba(255,255,255,0.1)'};
+              box-shadow: ${isCleaning ? '0 0 8px #3b82f6' : hasError ? '0 0 8px #ef4444' : 'none'};
               transition: all 0.3s;
           }
           
@@ -304,6 +557,12 @@ class PrismVacuumCard extends HTMLElement {
               display: flex; align-items: center; gap: 6px;
               font-size: 11px; color: #999;
           }
+          .controls-label ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+          }
           .controls-label span { font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
           
           .home-btn {
@@ -311,6 +570,12 @@ class PrismVacuumCard extends HTMLElement {
               padding: 4px 10px; border-radius: 20px;
               border: 1px solid transparent;
               cursor: pointer; transition: all 0.2s;
+          }
+          .home-btn ha-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
           }
           .home-btn.active {
               background: #141414; color: #3b82f6;
@@ -329,6 +594,7 @@ class PrismVacuumCard extends HTMLElement {
           }
           .speed-btn {
               flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer;
+              min-width: 0;
           }
           .speed-bar {
               width: 100%; height: 40px; border-radius: 12px; position: relative; overflow: hidden;
@@ -352,12 +618,15 @@ class PrismVacuumCard extends HTMLElement {
               background: transparent;
           }
           .speed-text {
-              font-size: 9px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;
+              font-size: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.3px;
               color: rgba(255,255,255,0.2); transition: color 0.3s;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
           }
           
           /* Active states for bars */
-          /* Using data attributes in render loop would be cleaner, but hardcoding css classes for now */
           .speed-btn.active .speed-fill { height: 100%; }
           .speed-btn.active .speed-line { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
           .speed-btn.active .speed-text { color: rgba(255,255,255,0.8); }
@@ -370,23 +639,42 @@ class PrismVacuumCard extends HTMLElement {
           <div class="header">
               <div class="header-left">
                   <div class="icon-box">
-                      <ha-icon icon="mdi:disc" class="icon-spin" style="width: 24px; height: 24px;"></ha-icon>
+                      <ha-icon icon="${hasError ? 'mdi:alert-circle' : 'mdi:robot-vacuum'}" class="${isActive ? 'icon-spin' : ''}" style="width: 24px; height: 24px;"></ha-icon>
                   </div>
                   <div class="info">
                       <div class="title">${name}</div>
                       <div class="subtitle">
-                          <ha-icon icon="mdi:battery" style="width: 12px; height: 12px; color: #4ade80;"></ha-icon>
-                          <span>${battery}%</span>
+                          <div class="battery-info">
+                              <ha-icon icon="${batteryIcon}" style="width: 14px; height: 14px; color: ${batteryColor};"></ha-icon>
+                              <span>${battery}%</span>
+                          </div>
+                          ${this.config.show_status ? `
+                          <div class="status-badge">
+                              <div class="status-dot"></div>
+                              <span>${this.getStatusText(state)}</span>
+                          </div>
+                          ` : ''}
                       </div>
                   </div>
               </div>
               
-              <div id="play-btn" class="play-btn ${isCleaning ? 'active' : 'inactive'}">
-                  <ha-icon icon="${isCleaning ? 'mdi:pause' : 'mdi:play'}" style="width: 18px; height: 18px;"></ha-icon>
+              <div class="header-right">
+                  <div id="locate-btn" class="action-btn" title="Lokalisieren">
+                      <ha-icon icon="mdi:map-marker" style="width: 16px; height: 16px;"></ha-icon>
+                  </div>
+                  <div id="play-btn" class="play-btn ${isCleaning ? 'active' : 'inactive'}">
+                      <ha-icon icon="${isCleaning ? 'mdi:pause' : 'mdi:play'}" style="width: 18px; height: 18px;"></ha-icon>
+                  </div>
               </div>
           </div>
           
           <div class="vacuum-inlet">
+              ${showMap ? `
+              <div class="map-container">
+                  <img class="map-image" src="${mapUrl}" alt="Vacuum Map" />
+                  <div class="map-overlay"></div>
+              </div>
+              ` : `
               <div class="floor-grid"></div>
               <div class="vacuum-body ${isCleaning ? 'animating' : ''}">
                   <div class="vacuum-visual">
@@ -396,13 +684,14 @@ class PrismVacuumCard extends HTMLElement {
                       <div class="led"></div>
                   </div>
               </div>
+              `}
           </div>
           
           <div class="controls-row">
              <div class="controls-header">
                  <div class="controls-label">
                      <ha-icon icon="mdi:fan" style="width: 14px; height: 14px; color: rgba(255,255,255,0.4);"></ha-icon>
-                     <span>Saugleistung</span>
+                     <span>Fan Speed</span>
                  </div>
                  
                  <div id="home-btn" class="home-btn ${isReturning || isDocked ? 'active' : 'inactive'}">
@@ -418,7 +707,7 @@ class PrismVacuumCard extends HTMLElement {
                             <div class="speed-fill"></div>
                             <div class="speed-line"></div>
                         </div>
-                        <span class="speed-text">${s}</span>
+                        <span class="speed-text">${this.getSpeedLabel(s)}</span>
                     </div>
                  `).join('')}
              </div>

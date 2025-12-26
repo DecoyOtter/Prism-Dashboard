@@ -121,6 +121,7 @@ Damit dieses Dashboard funktioniert, müssen folgende Frontend-Integrationen üb
    - `/hacsfiles/Prism-Dashboard/prism-led.js`
    - `/hacsfiles/Prism-Dashboard/prism-3dprinter.js`
    - `/hacsfiles/Prism-Dashboard/prism-bambu.js`
+   - `/hacsfiles/Prism-Dashboard/prism-energy.js`
    - `/hacsfiles/Prism-Dashboard/prism-sidebar.js`
    
    **Light Theme Karten (optional):**
@@ -188,6 +189,8 @@ Falls du Option 2 (manuelle Installation) gewählt hast, müssen die Custom Card
    - **URL:** `/local/custom-components/prism-3dprinter.js`  
      **Typ:** `JavaScript-Modul`
    - **URL:** `/local/custom-components/prism-bambu.js`  
+     **Typ:** `JavaScript-Modul`
+   - **URL:** `/local/custom-components/prism-energy.js`  
      **Typ:** `JavaScript-Modul`
    - **URL:** `/local/custom-components/prism-sidebar.js`  
      **Typ:** `JavaScript-Modul`

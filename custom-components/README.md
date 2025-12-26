@@ -256,6 +256,183 @@ Die Karte ist kompatibel mit der [ha-bambulab Integration](https://github.com/gr
 
 ---
 
+### prism-energy
+
+Eine Energie-Flow-Karte mit Glassmorphism-Design zur Visualisierung von Solar-Erzeugung, Netz-Bezug/Einspeisung, Batterie-Speicher, Hausverbrauch und E-Auto-Ladung. Optimiert für die [OpenEMS/Fenecon Integration](https://github.com/Lamarqe/ha_openems).
+
+<img width="400" alt="prism-energy" src="images/prism-energy-home.png" />
+
+**Features:**
+- ✅ **Animierte Energieflüsse**: Visualisiert den Energiefluss zwischen allen Komponenten
+- ✅ **Solar-Produktion**: Zeigt aktuelle PV-Leistung mit Animation
+- ✅ **Netz-Integration**: Bezug/Einspeisung mit farblicher Unterscheidung
+- ✅ **Batterie-Speicher**: SOC-Anzeige mit dynamischem Icon und Lade/Entlade-Status
+- ✅ **Hausverbrauch**: Aktuelle Verbrauchsleistung
+- ✅ **E-Auto-Ladung** (optional): EV-Ladeleistung wenn konfiguriert
+- ✅ **Autarkie-Badge** (optional): Zeigt Eigenverbrauchsquote
+- ✅ **Details-Bereich**: Optionaler Statistik-Bereich mit Balken-Visualisierung
+- ✅ **Visual Editor**: Vollständige Konfiguration über den Home Assistant UI Editor
+
+---
+
+#### Voraussetzungen
+
+Diese Karte ist optimiert für die **[ha_openems Integration](https://github.com/Lamarqe/ha_openems)** (Fenecon FEMS / OpenEMS).
+
+1. Installiere die Integration über HACS
+2. Konfiguriere dein FEMS/OpenEMS System
+3. Aktiviere die benötigten Entitäten (siehe unten)
+
+---
+
+#### Benötigte Entitäten finden
+
+Nach Installation der ha_openems Integration findest du die Entitäten unter **Einstellungen → Geräte & Dienste → OpenEMS**.
+
+**So findest du deine System-ID:**
+- Deine Entitäten haben das Format: `sensor.<system_id>_sum_<channel>`
+- Beispiel: `sensor.fems79420_sum_productionactivepower`
+- Die System-ID ist der Teil vor `_sum` (z.B. `fems79420`)
+
+**Benötigte Entitäten aktivieren:**
+
+Gehe zu **Einstellungen → Geräte & Dienste → OpenEMS → X Entitäten** und aktiviere:
+
+| Entität | Channel | Beschreibung |
+|---------|---------|--------------|
+| `sensor.<system>_sum_productionactivepower` | ProductionActivePower | ☀️ Solar-Produktion (Watt) |
+| `sensor.<system>_sum_gridactivepower` | GridActivePower | 🔌 Netz-Leistung (Watt) |
+| `sensor.<system>_sum_esssoc` | EssSoc | 🔋 Batterie-Ladezustand (%) |
+| `sensor.<system>_sum_essdischargepower` | EssDischargePower | 🔋 Batterie-Leistung (Watt) |
+| `sensor.<system>_sum_consumptionactivepower` | ConsumptionActivePower | 🏠 Hausverbrauch (Watt) |
+
+**Optionale Entitäten:**
+
+| Entität | Channel | Beschreibung |
+|---------|---------|--------------|
+| `sensor.<system>_evcs0_chargepower` | ChargePower | 🚗 E-Auto Ladeleistung (Watt) |
+
+---
+
+#### Autarkie-Sensor erstellen
+
+> ⚠️ **Wichtig:** Die ha_openems Integration bietet **keine direkte Autarkie-Entität**. Du musst einen Template-Sensor erstellen!
+
+Füge folgenden Code zu deiner `configuration.yaml` hinzu:
+
+```yaml
+template:
+  - sensor:
+      - name: "Energie Autarkie"
+        unique_id: energy_autarky_percentage
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:leaf
+        state: >
+          {% set consumption = states('sensor.DEINE_SYSTEM_ID_sum_consumptionactivepower') | float(0) %}
+          {% set grid_import = states('sensor.DEINE_SYSTEM_ID_sum_gridactivepower') | float(0) %}
+          {% if consumption > 0 %}
+            {% set grid_used = [grid_import, 0] | max %}
+            {{ ((1 - (grid_used / consumption)) * 100) | round(0) }}
+          {% else %}
+            100
+          {% endif %}
+```
+
+**Ersetze `DEINE_SYSTEM_ID` mit deiner tatsächlichen System-ID!**
+
+Beispiel: Wenn deine Entität `sensor.fems79420_sum_consumptionactivepower` heißt, dann ist deine System-ID `fems79420`.
+
+Nach dem Neustart von Home Assistant hast du `sensor.energie_autarkie` zur Verfügung.
+
+**Autarkie-Formel:**
+```
+Autarkie = (1 - (Netzbezug / Verbrauch)) × 100%
+
+Beispiele:
+- Verbrauch 1000W, Netzbezug 200W → Autarkie = 80%
+- Verbrauch 1000W, Netzbezug 0W   → Autarkie = 100%
+- Bei Einspeisung (negativ)       → Autarkie = 100%
+```
+
+---
+
+#### Karten-Konfiguration
+
+**Verwendung (Visual Editor empfohlen):**
+
+Die Karte kann vollständig über den Visual Editor konfiguriert werden. Suche einfach nach "Prism Energy" im Karten-Auswahl-Dialog.
+
+**YAML-Konfiguration:**
+```yaml
+type: custom:prism-energy
+name: Energy Monitor
+solar_power: sensor.fems79420_sum_productionactivepower
+grid_power: sensor.fems79420_sum_gridactivepower
+battery_soc: sensor.fems79420_sum_esssoc
+battery_power: sensor.fems79420_sum_essdischargepower
+home_consumption: sensor.fems79420_sum_consumptionactivepower
+ev_power: sensor.fems79420_evcs0_chargepower  # Optional - nur wenn E-Auto vorhanden
+autarky: sensor.energie_autarkie  # Optional - Template-Sensor von oben
+image: /hacsfiles/images/prism-energy-home.png
+show_details: true
+```
+
+---
+
+#### Konfigurationsoptionen
+
+| Option | Typ | Pflicht | Beschreibung |
+|--------|-----|---------|--------------|
+| `name` | string | Nein | Kartenname (Standard: "Energy Monitor") |
+| `solar_power` | entity | Ja | Solar-Produktions-Sensor |
+| `grid_power` | entity | Ja | Netz-Leistungs-Sensor (positiv=Bezug, negativ=Einspeisung) |
+| `battery_soc` | entity | Ja | Batterie-Ladezustand in % |
+| `battery_power` | entity | Ja | Batterie-Leistung (positiv=Entladung, negativ=Ladung) |
+| `home_consumption` | entity | Ja | Hausverbrauchs-Sensor |
+| `ev_power` | entity | Nein | E-Auto Ladeleistung (wenn nicht gesetzt, wird EV nicht angezeigt) |
+| `autarky` | entity | Nein | Autarkie-Prozent (wenn nicht gesetzt, wird Badge nicht angezeigt) |
+| `image` | string | Nein | Pfad zum Haus-Bild (Standard: prism-energy-home.png) |
+| `show_details` | boolean | Nein | Details-Bereich unten anzeigen (Standard: true) |
+
+---
+
+#### Energiefluss-Logik
+
+Die animierten Linien werden basierend auf folgenden Bedingungen angezeigt:
+
+| Flow | Bedingung | Farbe |
+|------|-----------|-------|
+| Solar → Haus | Solar > 50W UND Verbrauch > 0 | 🟡 Gelb/Orange |
+| Solar → Batterie | Solar > 50W UND Batterie lädt | 🟡 Gelb/Orange |
+| Solar → Netz | Solar > 50W UND Einspeisung | 🟡 Gelb/Orange |
+| Netz → Haus | Netzbezug > 50W | 🔵 Blau |
+| Netz → Batterie | Netzbezug > 50W UND Batterie lädt | 🔵 Blau |
+| Batterie → Haus | Batterie entlädt > 50W | 🟢 Grün |
+| Batterie → Netz | Batterie entlädt UND Einspeisung | 🟢 Grün |
+
+---
+
+#### Bild anpassen
+
+Das Standard-Bild ist bereits enthalten. Du kannst aber auch ein eigenes Bild verwenden:
+
+**HACS-Installation:**
+```
+/hacsfiles/images/prism-energy-home.png
+```
+
+**Manuelle Installation:**
+```
+/local/custom-components/images/prism-energy-home.png
+```
+
+**Eigenes Bild:**
+1. Lade dein Bild nach `/config/www/` hoch
+2. Verwende den Pfad `/local/dein-bild.png` in der Konfiguration
+
+---
+
 ### prism-sidebar
 
 Eine vollflächige Sidebar-Karte mit Kamera, Uhr, Kalender, Wetter-Forecast und Energie-Übersicht – ideal für Grid-Layouts mit eigener `sidebar`-Spalte.
