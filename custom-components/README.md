@@ -591,6 +591,92 @@ Das Standard-Bild ist bereits enthalten. Du kannst aber auch ein eigenes Bild ve
 
 ---
 
+### prism-energy-horizontal
+
+Eine horizontale Variante der Energie-Flow-Karte, optimiert für größere Bildschirme (z.B. Tablets, iPads). Die Haus-Visualisierung und Details werden nebeneinander angezeigt, wodurch alle Elemente größer dargestellt werden können. Ideal für Panel-Views oder breite Dashboard-Layouts.
+
+<img width="800" alt="prism-energy-horizontal" src="images/prism-energy-horizontal.png" />
+
+**Features:**
+- ✅ **Horizontales Layout**: Haus-Visualisierung links, Details-Panel rechts
+- ✅ **Größere Darstellung**: Optimiert für Tablets und große Bildschirme
+- ✅ **Responsive Design**: Passt sich automatisch der Bildschirmgröße an
+- ✅ **Runde Gauges**: Details-Panel verwendet runde Inlet-Gauges (wie prism-heat)
+- ✅ **Batterie-Symbol**: Batterie wird als Icon mit SOC, Leistung und Status angezeigt
+- ✅ **Autarkie-Pill**: Vollständige Autarkie-Anzeige mit Icon und Label
+- ✅ **Feste Pill-Positionen**: Pills sind relativ zum Haus-Bild positioniert und skalieren mit
+- ✅ **Dynamische Haus-Größe**: Haus wird größer wenn Details-Panel ausgeblendet ist
+- ✅ **Alle Features von prism-energy**: Gleiche Funktionalität wie die Standard-Version
+
+**Unterschiede zur Standard-Version:**
+- **Layout**: Horizontal statt vertikal
+- **Details-Panel**: Rechts statt unten, mit runden Gauges statt Balken
+- **Batterie-Anzeige**: Icon-basiert statt Gauge
+- **Größe**: Größere Elemente für bessere Lesbarkeit auf Tablets
+
+**Verwendung:**
+
+**YAML-Konfiguration:**
+```yaml
+type: custom:prism-energy-horizontal
+name: Energy Monitor
+solar_power: sensor.fems79420_sum_productionactivepower
+grid_power: sensor.fems79420_sum_gridactivepower
+battery_soc: sensor.fems79420_sum_esssoc
+battery_power: sensor.fems79420_sum_essdischargepower
+home_consumption: sensor.fems79420_sum_consumptionactivepower
+ev_power: sensor.fems79420_evcs0_chargepower  # Optional
+autarky: sensor.energie_autarkie  # Optional
+image: /hacsfiles/images/prism-energy-home.png
+show_details: true  # Details-Panel rechts anzeigen
+```
+
+**Erweiterte Konfiguration mit Solar-Modulen:**
+```yaml
+type: custom:prism-energy-horizontal
+name: Energy Monitor
+solar_power: sensor.fems79420_sum_productionactivepower
+grid_power: sensor.fems79420_sum_gridactivepower
+battery_soc: sensor.fems79420_sum_esssoc
+battery_power: sensor.fems79420_sum_essdischargepower
+home_consumption: sensor.fems79420_sum_consumptionactivepower
+show_details: true
+# Solar Module einzeln anzeigen (optional)
+solar_module1: sensor.fems79420_charger0_actualpower
+solar_module1_name: "Büro links"
+solar_module2: sensor.fems79420_charger1_actualpower
+solar_module2_name: "Büro rechts"
+solar_module3: sensor.fems79420_charger2_actualpower
+solar_module3_name: "Wohnhaus"
+```
+
+**Konfigurationsoptionen:**
+
+Identisch zur Standard-Version `prism-energy` (siehe oben). Die Karte verwendet die gleichen Entitäten und Konfigurationsoptionen.
+
+**Layout-Empfehlungen:**
+
+Für optimale Darstellung wird empfohlen:
+- **Panel View**: Verwende die Karte in einer Panel-View für volle Breite
+- **Grid Layout**: Mindestens 4 Spalten für horizontales Layout
+- **Tablet/iPad**: Ideal für große Bildschirme (iPad Pro, etc.)
+
+**Responsive Verhalten:**
+
+- **Große Bildschirme (>1200px)**: Horizontales Layout mit Details-Panel rechts
+- **Mittlere Bildschirme (900-1200px)**: Skaliert automatisch, bleibt horizontal
+- **Kleine Bildschirme (<900px)**: Wechselt automatisch zu vertikalem Layout (Haus oben, Details unten)
+
+**Details-Panel Layout:**
+
+Das Details-Panel zeigt (von oben nach unten):
+1. **Solar-Gauge** (oben, zentriert)
+2. **Solar-Module** (Liste der einzelnen Charger, falls konfiguriert)
+3. **Grid & Consumption Gauges** (nebeneinander: links Grid, rechts Consumption)
+4. **Batterie-Sektion** (unten, zentriert): Icon, SOC, Leistung, Status
+
+---
+
 ### prism-sidebar
 
 Eine vollflächige Sidebar-Karte mit Kamera, Uhr, Kalender, Wetter-Forecast und Energie-Übersicht – ideal für Grid-Layouts mit eigener `sidebar`-Spalte.
