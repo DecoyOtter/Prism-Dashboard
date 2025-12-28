@@ -25,7 +25,7 @@ const BAMBU_AMS_MODELS = [
 const ENTITY_KEYS = [
   'aux_fan_speed', 'bed_temp', 'chamber_fan_speed', 'chamber_light', 'chamber_temp',
   'cooling_fan_speed', 'cover_image', 'current_layer', 'door_open', 'humidity',
-  'nozzle_temp', 'power', 'print_progress', 'print_status', 'remaining_time',
+  'heatbreak_fan_speed', 'nozzle_temp', 'power', 'print_progress', 'print_status', 'remaining_time',
   'speed_profile', 'stage', 'target_bed_temp', 'target_bed_temperature',
   'target_nozzle_temp', 'target_nozzle_temperature', 'total_layers', 'camera',
   'titelbild' // German translation key for cover image
@@ -126,6 +126,16 @@ class PrismBambuCard extends HTMLElement {
           name: 'custom_light',
           label: 'Custom light entity (optional - overrides auto-detected)',
           selector: { entity: { domain: 'light' } }
+        },
+        {
+          name: 'custom_fan',
+          label: 'Custom fan sensor (optional - shows additional fan speed)',
+          selector: { entity: { domain: 'sensor' } }
+        },
+        {
+          name: 'custom_fan_name',
+          label: 'Custom fan label (optional - default: "Custom")',
+          selector: { text: {} }
         },
         {
           name: 'power_switch',
@@ -281,22 +291,43 @@ class PrismBambuCard extends HTMLElement {
       layerValue.textContent = `${data.currentLayer} / ${data.totalLayers}`;
     }
     
-    // Update temperatures and fans via pill values
-    const pillValues = this.shadowRoot.querySelectorAll('.pill-value');
-    if (pillValues.length >= 5) {
-      pillValues[0].textContent = `${data.partFanSpeed}%`;
-      pillValues[1].textContent = `${data.auxFanSpeed}%`;
-      pillValues[2].textContent = `${Math.round(data.nozzleTemp)}°`;
-      pillValues[3].textContent = `${Math.round(data.bedTemp)}°`;
-      pillValues[4].textContent = `${Math.round(data.chamberTemp)}°`;
+    // Update fans via data-pill attributes
+    const updatePill = (selector, value) => {
+      const pill = this.shadowRoot.querySelector(`[data-pill="${selector}"] .pill-value`);
+      if (pill) pill.textContent = value;
+    };
+    
+    updatePill('part-fan', `${data.partFanSpeed}%`);
+    updatePill('aux-fan', `${data.auxFanSpeed}%`);
+    if (data.chamberFanSpeed !== null && data.chamberFanSpeed !== undefined) {
+      updatePill('chamber-fan', `${data.chamberFanSpeed}%`);
+    }
+    if (data.heatbreakFanSpeed !== null && data.heatbreakFanSpeed !== undefined) {
+      updatePill('heatbreak-fan', `${data.heatbreakFanSpeed}%`);
+    }
+    if (data.humidity !== null) {
+      updatePill('humidity', `${Math.round(data.humidity)}%`);
+    }
+    if (data.customFanSpeed !== null) {
+      updatePill('custom-fan', `${Math.round(data.customFanSpeed)}%`);
+    }
+    
+    // Update temperatures
+    updatePill('nozzle-temp', `${Math.round(data.nozzleTemp)}°`);
+    updatePill('bed-temp', `${Math.round(data.bedTemp)}°`);
+    updatePill('chamber-temp', `${Math.round(data.chamberTemp)}°`);
+    if (data.customTemp !== null) {
+      updatePill('custom-temp', `${Math.round(data.customTemp)}°`);
     }
     
     // Update target temps
-    const pillLabels = this.shadowRoot.querySelectorAll('.overlay-right .pill-label');
-    if (pillLabels.length >= 2) {
-      pillLabels[0].textContent = `/${Math.round(data.targetNozzleTemp)}°`;
-      pillLabels[1].textContent = `/${Math.round(data.targetBedTemp)}°`;
-    }
+    const updateLabel = (selector, value) => {
+      const label = this.shadowRoot.querySelector(`[data-pill="${selector}"] .pill-label`);
+      if (label) label.textContent = value;
+    };
+    
+    updateLabel('nozzle-temp', `/${Math.round(data.targetNozzleTemp)}°`);
+    updateLabel('bed-temp', `/${Math.round(data.targetBedTemp)}°`);
     
     // Update camera stream hass if it exists
     const cameraStream = this.shadowRoot.querySelector('ha-camera-stream');
@@ -451,6 +482,92 @@ class PrismBambuCard extends HTMLElement {
         e.stopPropagation();
         this.handlePowerToggle();
       };
+    }
+    
+    // Filament slot click handlers - open popup with details
+    const filamentSlots = this.shadowRoot?.querySelectorAll('.ams-slot.clickable');
+    if (filamentSlots) {
+      filamentSlots.forEach(slot => {
+        slot.onclick = (e) => {
+          e.stopPropagation();
+          this.openFilamentPopup(slot);
+        };
+      });
+    }
+    
+    // Filament popup close handlers
+    const popupOverlay = this.shadowRoot?.querySelector('.filament-popup-overlay');
+    const popupClose = this.shadowRoot?.querySelector('.filament-popup-close');
+    
+    if (popupOverlay) {
+      popupOverlay.onclick = (e) => {
+        if (e.target === popupOverlay) {
+          this.closeFilamentPopup();
+        }
+      };
+    }
+    
+    if (popupClose) {
+      popupClose.onclick = (e) => {
+        e.stopPropagation();
+        this.closeFilamentPopup();
+      };
+    }
+  }
+  
+  openFilamentPopup(slotElement) {
+    const overlay = this.shadowRoot?.querySelector('.filament-popup-overlay');
+    if (!overlay) return;
+    
+    // Get data from slot element
+    const slotId = slotElement.dataset.slotId;
+    const fullName = slotElement.dataset.fullName || '';
+    const type = slotElement.dataset.type || 'Unknown';
+    const color = slotElement.dataset.color || '#666666';
+    const remaining = slotElement.dataset.remaining;
+    const brand = slotElement.dataset.brand || '';
+    const tempMin = slotElement.dataset.tempMin;
+    const tempMax = slotElement.dataset.tempMax;
+    
+    // Update popup content
+    const colorEl = overlay.querySelector('.filament-popup-color');
+    if (colorEl) colorEl.style.backgroundColor = color;
+    
+    const setValue = (field, value) => {
+      const el = overlay.querySelector(`[data-field="${field}"]`);
+      if (el) el.textContent = value;
+    };
+    
+    setValue('slot', `Slot ${slotId}`);
+    setValue('name', fullName || type);
+    setValue('type', type);
+    setValue('brand', brand || '-');
+    setValue('remaining', remaining < 0 ? 'Unknown' : `${remaining}%`);
+    
+    // Handle temperature range
+    const tempRow = overlay.querySelector('[data-field-row="temp"]');
+    const brandRow = overlay.querySelector('[data-field-row="brand"]');
+    
+    if (tempMin && tempMax) {
+      setValue('temp', `${tempMin}° - ${tempMax}°`);
+      if (tempRow) tempRow.style.display = 'flex';
+    } else {
+      if (tempRow) tempRow.style.display = 'none';
+    }
+    
+    // Hide brand row if no brand
+    if (brandRow) {
+      brandRow.style.display = brand ? 'flex' : 'none';
+    }
+    
+    // Show popup
+    overlay.style.display = 'flex';
+  }
+  
+  closeFilamentPopup() {
+    const overlay = this.shadowRoot?.querySelector('.filament-popup-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
     }
   }
   
@@ -655,6 +772,8 @@ class PrismBambuCard extends HTMLElement {
     // Fans
     const partFanSpeed = this.getEntityValue('cooling_fan_speed');
     const auxFanSpeed = this.getEntityValue('aux_fan_speed');
+    const chamberFanSpeed = this.getEntityValue('chamber_fan_speed');
+    const heatbreakFanSpeed = this.getEntityValue('heatbreak_fan_speed');
     
     // Layer info (only show when printing)
     let currentLayer = 0;
@@ -682,6 +801,12 @@ class PrismBambuCard extends HTMLElement {
     const powerSwitch = this.config.power_switch;
     const powerSwitchState = powerSwitch ? this._hass.states[powerSwitch] : null;
     const isPowerOn = powerSwitchState?.state === 'on';
+    
+    // Custom fan
+    const customFan = this.config.custom_fan;
+    const customFanState = customFan ? this._hass.states[customFan] : null;
+    const customFanSpeed = customFanState ? parseFloat(customFanState.state) || 0 : null;
+    const customFanName = this.config.custom_fan_name || 'Custom';
     
     // Debug: Log light entity
     PrismBambuCard.log('Chamber light entity:', chamberLightEntityId, 'State:', chamberLightState);
@@ -943,7 +1068,13 @@ class PrismBambuCard extends HTMLElement {
           remaining: isEmpty ? 0 : Math.round(remaining),
           remainEnabled: remainEnabled,
           active,
-          empty: isEmpty
+          empty: isEmpty,
+          // Full filament info for popup
+          fullName: attr.name || '',
+          brand: attr.brand || attr.manufacturer || '',
+          nozzleTempMin: attr.nozzle_temp_min || attr.min_nozzle_temp || null,
+          nozzleTempMax: attr.nozzle_temp_max || attr.max_nozzle_temp || null,
+          entityId: trayEntity.entityId
         });
       } else if (!isExternalSpool && i < 4) {
         // Fill empty slots up to 4 only for full AMS (not external spool)
@@ -953,7 +1084,12 @@ class PrismBambuCard extends HTMLElement {
           color: '#666666',
           remaining: 0,
           active: false,
-          empty: true
+          empty: true,
+          fullName: '',
+          brand: '',
+          nozzleTempMin: null,
+          nozzleTempMax: null,
+          entityId: null
         });
       }
     }
@@ -979,6 +1115,8 @@ class PrismBambuCard extends HTMLElement {
       chamberTemp,
       partFanSpeed,
       auxFanSpeed,
+      chamberFanSpeed,
+      heatbreakFanSpeed,
       currentLayer,
       totalLayers,
       name,
@@ -998,6 +1136,8 @@ class PrismBambuCard extends HTMLElement {
       // Custom sensors
       humidity,
       customTemp,
+      customFanSpeed,
+      customFanName,
       powerSwitch,
       isPowerOn
     };
@@ -1022,6 +1162,8 @@ class PrismBambuCard extends HTMLElement {
       chamberTemp: 35,
       partFanSpeed: 50,
       auxFanSpeed: 30,
+      chamberFanSpeed: 65,
+      heatbreakFanSpeed: 80,
       currentLayer: 12,
       totalLayers: 28,
       name: this.config?.name || 'Bambu Lab Printer',
@@ -1046,6 +1188,8 @@ class PrismBambuCard extends HTMLElement {
       // Custom sensors
       humidity: null,
       customTemp: null,
+      customFanSpeed: null,
+      customFanName: 'Custom',
       powerSwitch: null,
       isPowerOn: true
     };
@@ -1304,6 +1448,110 @@ class PrismBambuCard extends HTMLElement {
             font-size: 10px;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.9);
+        }
+        .ams-slot.clickable {
+            cursor: pointer;
+        }
+        .ams-slot.clickable:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Filament Popup */
+        .filament-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .filament-popup {
+            background: linear-gradient(145deg, #1a1a1a, #252525);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 320px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .filament-popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .filament-popup-color {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .filament-popup-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .filament-popup-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+        }
+        .filament-popup-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .filament-popup-content {
+            padding: 16px 20px;
+        }
+        .filament-popup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .filament-popup-row:last-child {
+            border-bottom: none;
+        }
+        .filament-popup-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .filament-popup-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
         }
         
         /* Main Visual */
@@ -1805,7 +2053,16 @@ class PrismBambuCard extends HTMLElement {
         ${data.amsData.length > 0 ? `
         <div class="ams-grid ${data.amsData.length <= 3 ? 'slots-' + data.amsData.length : ''}">
             ${data.amsData.map(slot => `
-                <div class="ams-slot ${slot.active ? 'active' : ''}">
+                <div class="ams-slot ${slot.active ? 'active' : ''} ${!slot.empty ? 'clickable' : ''}"
+                     ${!slot.empty ? `data-slot-id="${slot.id}"
+                     data-full-name="${(slot.fullName || '').replace(/"/g, '&quot;')}"
+                     data-type="${slot.type}"
+                     data-color="${slot.color}"
+                     data-remaining="${slot.remaining}"
+                     data-brand="${(slot.brand || '').replace(/"/g, '&quot;')}"
+                     data-temp-min="${slot.nozzleTempMin || ''}"
+                     data-temp-max="${slot.nozzleTempMax || ''}"
+                     data-entity-id="${slot.entityId || ''}"` : ''}>
                     <div class="spool-visual">
                         ${!slot.empty ? `
                             <div class="filament" style="background-color: ${slot.color}"></div>
@@ -1818,6 +2075,43 @@ class PrismBambuCard extends HTMLElement {
                     </div>
                 </div>
             `).join('')}
+        </div>
+        
+        <!-- Filament Info Popup -->
+        <div class="filament-popup-overlay" style="display: none;">
+            <div class="filament-popup">
+                <div class="filament-popup-header">
+                    <div class="filament-popup-color"></div>
+                    <div class="filament-popup-title">Filament Details</div>
+                    <button class="filament-popup-close"><ha-icon icon="mdi:close"></ha-icon></button>
+                </div>
+                <div class="filament-popup-content">
+                    <div class="filament-popup-row">
+                        <span class="filament-popup-label">Slot</span>
+                        <span class="filament-popup-value" data-field="slot"></span>
+                    </div>
+                    <div class="filament-popup-row">
+                        <span class="filament-popup-label">Name</span>
+                        <span class="filament-popup-value" data-field="name"></span>
+                    </div>
+                    <div class="filament-popup-row">
+                        <span class="filament-popup-label">Type</span>
+                        <span class="filament-popup-value" data-field="type"></span>
+                    </div>
+                    <div class="filament-popup-row" data-field-row="brand">
+                        <span class="filament-popup-label">Brand</span>
+                        <span class="filament-popup-value" data-field="brand"></span>
+                    </div>
+                    <div class="filament-popup-row">
+                        <span class="filament-popup-label">Remaining</span>
+                        <span class="filament-popup-value" data-field="remaining"></span>
+                    </div>
+                    <div class="filament-popup-row" data-field-row="temp">
+                        <span class="filament-popup-label">Nozzle Temp</span>
+                        <span class="filament-popup-value" data-field="temp"></span>
+                    </div>
+                </div>
+            </div>
         </div>
         ` : ''}
 
@@ -1847,22 +2141,40 @@ class PrismBambuCard extends HTMLElement {
                 ` : ''}
                 
                 <div class="overlay-left">
-                    <div class="overlay-pill">
+                    <div class="overlay-pill" data-pill="part-fan">
                         <div class="pill-icon-container"><ha-icon icon="mdi:fan"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.partFanSpeed}%</span>
                             <span class="pill-label">Part</span>
                         </div>
                     </div>
-                    <div class="overlay-pill">
+                    <div class="overlay-pill" data-pill="aux-fan">
                         <div class="pill-icon-container"><ha-icon icon="mdi:weather-windy"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.auxFanSpeed}%</span>
                             <span class="pill-label">Aux</span>
                         </div>
                     </div>
+                    ${data.chamberFanSpeed !== null && data.chamberFanSpeed !== undefined ? `
+                    <div class="overlay-pill" data-pill="chamber-fan">
+                        <div class="pill-icon-container"><ha-icon icon="mdi:fan-chevron-up" style="color: #22d3ee;"></ha-icon></div>
+                        <div class="pill-content">
+                            <span class="pill-value">${data.chamberFanSpeed}%</span>
+                            <span class="pill-label">Chamber</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${data.heatbreakFanSpeed !== null && data.heatbreakFanSpeed !== undefined ? `
+                    <div class="overlay-pill" data-pill="heatbreak-fan">
+                        <div class="pill-icon-container"><ha-icon icon="mdi:fan-alert" style="color: #f472b6;"></ha-icon></div>
+                        <div class="pill-content">
+                            <span class="pill-value">${data.heatbreakFanSpeed}%</span>
+                            <span class="pill-label">Heatbrk</span>
+                        </div>
+                    </div>
+                    ` : ''}
                     ${data.humidity !== null ? `
-                    <div class="overlay-pill">
+                    <div class="overlay-pill" data-pill="humidity">
                         <div class="pill-icon-container"><ha-icon icon="mdi:water-percent" style="color: #60a5fa;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${Math.round(data.humidity)}%</span>
@@ -1870,24 +2182,33 @@ class PrismBambuCard extends HTMLElement {
                         </div>
                     </div>
                     ` : ''}
+                    ${data.customFanSpeed !== null ? `
+                    <div class="overlay-pill" data-pill="custom-fan">
+                        <div class="pill-icon-container"><ha-icon icon="mdi:fan-auto" style="color: #fbbf24;"></ha-icon></div>
+                        <div class="pill-content">
+                            <span class="pill-value">${Math.round(data.customFanSpeed)}%</span>
+                            <span class="pill-label">${data.customFanName}</span>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
                 
                 <div class="overlay-right">
-                    <div class="overlay-pill right">
+                    <div class="overlay-pill right" data-pill="nozzle-temp">
                         <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #F87171;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.nozzleTemp}°</span>
                             <span class="pill-label">/${data.targetNozzleTemp}°</span>
                         </div>
                     </div>
-                    <div class="overlay-pill right">
+                    <div class="overlay-pill right" data-pill="bed-temp">
                         <div class="pill-icon-container"><ha-icon icon="mdi:radiator" style="color: #FB923C;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.bedTemp}°</span>
                             <span class="pill-label">/${data.targetBedTemp}°</span>
                         </div>
                     </div>
-                    <div class="overlay-pill right">
+                    <div class="overlay-pill right" data-pill="chamber-temp">
                         <div class="pill-icon-container"><ha-icon icon="mdi:thermometer" style="color: #4ade80;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${data.chamberTemp}°</span>
@@ -1895,7 +2216,7 @@ class PrismBambuCard extends HTMLElement {
                         </div>
                     </div>
                     ${data.customTemp !== null ? `
-                    <div class="overlay-pill right">
+                    <div class="overlay-pill right" data-pill="custom-temp">
                         <div class="pill-icon-container"><ha-icon icon="mdi:thermometer-lines" style="color: #a78bfa;"></ha-icon></div>
                         <div class="pill-content">
                             <span class="pill-value">${Math.round(data.customTemp)}°</span>
