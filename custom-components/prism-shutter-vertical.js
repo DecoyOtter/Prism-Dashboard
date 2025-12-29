@@ -323,6 +323,8 @@ class PrismShutterVerticalCard extends HTMLElement {
 
         </div>
       `;
+      
+      this.setupListeners();
     }
   }
   

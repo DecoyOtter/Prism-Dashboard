@@ -97,20 +97,11 @@ class PrismVacuumCard extends HTMLElement {
             });
         }
         
-        // Locate
-        const locateBtn = root.querySelector('#locate-btn');
-        if(locateBtn) {
-            locateBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleAction('locate');
-            });
-        }
-        
-        // Toggle Play on main inlet click
+        // Locate - click on vacuum inlet/robot to find it
         const inlet = root.querySelector('.vacuum-inlet');
         if(inlet) {
             inlet.addEventListener('click', () => {
-                this.handleAction('toggle');
+                this.handleAction('locate');
             });
         }
 
@@ -343,8 +334,14 @@ class PrismVacuumCard extends HTMLElement {
           /* Header */
           .header {
               display: flex; justify-content: space-between; align-items: center; z-index: 2;
+              gap: 12px;
           }
-          .header-left { display: flex; align-items: center; gap: 16px; }
+          .header-left { 
+              display: flex; align-items: center; gap: 16px;
+              flex: 1;
+              min-width: 0;
+              overflow: hidden;
+          }
           
           .icon-box {
               width: 48px; height: 48px; border-radius: 50%;
@@ -352,6 +349,7 @@ class PrismVacuumCard extends HTMLElement {
               color: ${isActive ? '#60a5fa' : hasError ? '#ef4444' : 'rgba(255,255,255,0.4)'};
               display: flex; align-items: center; justify-content: center;
               transition: all 0.5s ease;
+              flex-shrink: 0;
               ${isActive ? 'filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));' : ''}
               ${hasError ? 'filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));' : ''}
           }
@@ -366,11 +364,22 @@ class PrismVacuumCard extends HTMLElement {
           }
           @keyframes spin { 100% { transform: rotate(360deg); } }
           
-          .info { display: flex; flex-direction: column; }
-          .title { font-size: 18px; font-weight: 700; color: #e0e0e0; line-height: 1.2; }
+          .info { 
+              display: flex; flex-direction: column;
+              min-width: 0;
+              overflow: hidden;
+          }
+          .title { 
+              font-size: 18px; font-weight: 700; color: #e0e0e0; line-height: 1.2;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
           .subtitle { 
               font-size: 12px; font-weight: 500; color: #999; margin-top: 2px;
               display: flex; align-items: center; gap: 8px;
+              flex-wrap: wrap;
+              overflow: hidden;
           }
           .subtitle ha-icon {
               display: flex;
@@ -414,6 +423,7 @@ class PrismVacuumCard extends HTMLElement {
               display: flex;
               align-items: center;
               gap: 8px;
+              flex-shrink: 0;
           }
           
           .action-btn {
@@ -456,7 +466,7 @@ class PrismVacuumCard extends HTMLElement {
           }
           .play-btn.inactive:hover { background: rgba(255,255,255,0.1); }
           
-          /* Visual Inlet */
+          /* Visual Inlet - click to locate robot */
           .vacuum-inlet {
               width: 100%; height: 160px; border-radius: 16px;
               background: rgba(20, 20, 20, 0.8);
@@ -465,6 +475,13 @@ class PrismVacuumCard extends HTMLElement {
               border-top: 1px solid rgba(0,0,0,0.4);
               position: relative; overflow: hidden;
               cursor: pointer;
+              transition: all 0.2s ease;
+          }
+          .vacuum-inlet:hover {
+              background: rgba(25, 25, 25, 0.9);
+          }
+          .vacuum-inlet:active {
+              transform: scale(0.995);
           }
           
           /* Map display */
@@ -659,11 +676,8 @@ class PrismVacuumCard extends HTMLElement {
               </div>
               
               <div class="header-right">
-                  <div id="locate-btn" class="action-btn" title="Lokalisieren">
-                      <ha-icon icon="mdi:map-marker" style="width: 16px; height: 16px;"></ha-icon>
-                  </div>
                   <div id="play-btn" class="play-btn ${isCleaning ? 'active' : 'inactive'}">
-                      <ha-icon icon="${isCleaning ? 'mdi:pause' : 'mdi:play'}" style="width: 18px; height: 18px;"></ha-icon>
+                      <ha-icon icon="${isCleaning ? 'mdi:pause' : 'mdi:play'}" style="width: 20px; height: 20px;"></ha-icon>
                   </div>
               </div>
           </div>

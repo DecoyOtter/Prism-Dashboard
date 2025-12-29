@@ -183,8 +183,14 @@ class PrismVacuumLightCard extends HTMLElement {
           /* Header */
           .header {
               display: flex; justify-content: space-between; align-items: center; z-index: 2;
+              gap: 12px;
           }
-          .header-left { display: flex; align-items: center; gap: 16px; }
+          .header-left { 
+              display: flex; align-items: center; gap: 16px;
+              flex: 1;
+              min-width: 0;
+              overflow: hidden;
+          }
           
           .icon-box {
               width: 48px; height: 48px; border-radius: 50%;
@@ -192,6 +198,7 @@ class PrismVacuumLightCard extends HTMLElement {
               color: ${isActive ? '#60a5fa' : 'rgba(0,0,0,0.4)'};
               display: flex; align-items: center; justify-content: center;
               transition: all 0.5s ease;
+              flex-shrink: 0;
               ${isActive ? 'filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4));' : ''}
           }
           .icon-spin {
@@ -199,11 +206,22 @@ class PrismVacuumLightCard extends HTMLElement {
           }
           @keyframes spin { 100% { transform: rotate(360deg); } }
           
-          .info { display: flex; flex-direction: column; }
-          .title { font-size: 18px; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+          .info { 
+              display: flex; flex-direction: column;
+              min-width: 0;
+              overflow: hidden;
+          }
+          .title { 
+              font-size: 18px; font-weight: 700; color: #1a1a1a; line-height: 1.2;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
           .subtitle { 
               font-size: 12px; font-weight: 500; color: #666; margin-top: 2px;
               display: flex; align-items: center; gap: 4px;
+              flex-wrap: wrap;
+              overflow: hidden;
           }
           
           .play-btn {

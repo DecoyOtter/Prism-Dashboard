@@ -162,11 +162,54 @@ class PrismMediaCard extends HTMLElement {
     if (!this.config || !this.config.entity) return;
     
     const attr = this._entity ? this._entity.attributes : {};
-    const title = attr.media_title || 'No Media';
-    const artist = attr.media_artist || attr.media_series_title || 'Idle';
+    const state = this._entity ? this._entity.state : 'idle';
+    
+    // Title: try various attributes
+    const title = attr.media_title || attr.media_album_name || 'No Media';
+    
+    // Subtitle: try artist, series, app name, channel, or show state
+    let subtitle = '';
+    if (attr.media_artist) {
+      subtitle = attr.media_artist;
+    } else if (attr.media_series_title) {
+      subtitle = attr.media_series_title;
+      // Add episode info if available
+      if (attr.media_season && attr.media_episode) {
+        subtitle += ` S${attr.media_season}E${attr.media_episode}`;
+      }
+    } else if (attr.media_channel) {
+      subtitle = attr.media_channel;
+    } else if (attr.app_name) {
+      // Apple TV and similar devices
+      subtitle = attr.app_name;
+    } else if (attr.source) {
+      subtitle = attr.source;
+    } else {
+      // Fallback to translated state
+      const stateMap = {
+        'playing': 'Wiedergabe',
+        'paused': 'Pausiert', 
+        'idle': 'Bereit',
+        'off': 'Aus',
+        'standby': 'Standby',
+        'buffering': 'Puffern...',
+        'on': 'An',
+        'unavailable': 'Nicht verfügbar'
+      };
+      subtitle = stateMap[state] || state;
+    }
+    
     const art = attr.entity_picture; // This usually returns e.g. /api/media_player_proxy/...
-    const vol = (attr.volume_level || 0) * 100;
-    const isPlaying = this._entity ? this._entity.state === 'playing' : false;
+    
+    // Volume: handle undefined, null, or 0
+    const volLevel = attr.volume_level;
+    const vol = (volLevel !== undefined && volLevel !== null) ? volLevel * 100 : 0;
+    const hasVolume = volLevel !== undefined && volLevel !== null;
+    const isMuted = attr.is_volume_muted === true;
+    
+    const isPlaying = state === 'playing';
+    const isPaused = state === 'paused';
+    const isActive = isPlaying || isPaused;
     const playingColor = this.config.playing_color || "#60a5fa";
 
     this.shadowRoot.innerHTML = `
@@ -209,7 +252,18 @@ class PrismMediaCard extends HTMLElement {
         
         .info { flex: 1; min-width: 0; }
         .title { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .artist { font-size: 14px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+        .subtitle-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .subtitle { font-size: 14px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .state-dot {
+            width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+            background: ${isPlaying ? playingColor : isPaused ? '#f59e0b' : 'rgba(255,255,255,0.3)'};
+            ${isPlaying ? `box-shadow: 0 0 6px ${playingColor};` : ''}
+            ${isPlaying ? 'animation: pulse 2s infinite;' : ''}
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
         
         .volume-container {
             margin-top: 12px; display: flex; align-items: center; gap: 12px;
@@ -287,10 +341,13 @@ class PrismMediaCard extends HTMLElement {
             <div class="art-cover" style="background-image: url('${art || ''}');"></div>
             <div class="info">
                 <div class="title">${title}</div>
-                <div class="artist">${artist}</div>
+                <div class="subtitle-row">
+                    <div class="state-dot"></div>
+                    <div class="subtitle">${subtitle}</div>
+                </div>
                 
                 <div class="volume-container">
-                    <ha-icon class="vol-icon" icon="mdi:volume-high"></ha-icon>
+                    <ha-icon class="vol-icon" icon="${isMuted ? 'mdi:volume-off' : vol > 50 ? 'mdi:volume-high' : vol > 0 ? 'mdi:volume-medium' : 'mdi:volume-low'}"></ha-icon>
                     <div class="volume-slider" id="volume-slider">
                         <div class="volume-fill" id="volume-fill" style="width: ${vol}%"></div>
                     </div>
