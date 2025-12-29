@@ -120,34 +120,83 @@ class PrismHeatSmallCard extends HTMLElement {
         
         /* Header */
         .header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 16px;
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
         
         .icon-box {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 38px; 
+            height: 38px; 
+            min-width: 38px;
+            border-radius: 50%;
             background: ${isHeating ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)'}; 
             color: ${isHeating ? '#fb923c' : 'rgba(255,255,255,0.4)'};
-            display: flex; align-items: center; justify-content: center;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
             box-shadow: ${isHeating ? '0 0 15px rgba(249,115,22,0.3)' : 'none'};
             transition: all 0.5s ease;
             ${isHeating ? 'filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.6));' : ''}
         }
+        .icon-box ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        .info { display: flex; flex-direction: column; }
-        .title { font-size: 15px; font-weight: 700; color: #e0e0e0; line-height: 1.2; }
+        .info { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        }
+        .title { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: #e0e0e0; 
+            line-height: 1.2; 
+        }
         .subtitle { 
-            font-size: 12px; font-weight: 500; color: #999; margin-top: 2px; display: flex; gap: 6px;
+            font-size: 12px; 
+            font-weight: 500; 
+            color: #999; 
+            margin-top: 2px; 
+            display: flex; 
+            gap: 6px;
         }
         
         /* Chip */
         .chip {
-            padding: 4px 10px; border-radius: 20px;
+            padding: 6px 10px; 
+            border-radius: 20px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 6px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px;
+            height: 28px;
+            box-sizing: border-box;
         }
-        .chip-text { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.7); }
+        .chip ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chip-text { 
+            font-size: 10px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: rgba(255,255,255,0.7); 
+            line-height: 1;
+        }
         
         /* Controls */
         .controls {

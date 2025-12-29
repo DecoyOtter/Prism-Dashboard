@@ -176,14 +176,17 @@ class PrismShutterLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 20px;
           color: #1a1a1a;
           user-select: none;
@@ -204,10 +207,11 @@ class PrismShutterLightCard extends HTMLElement {
         /* Inlet Slider Display (Interactive) */
         .slider-track {
             height: 12px; border-radius: 12px; margin-bottom: 24px;
-            background: rgba(240, 240, 240, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -3px -3px 8px rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.05);
             position: relative; overflow: hidden;
             cursor: pointer; touch-action: none;
         }
@@ -222,16 +226,22 @@ class PrismShutterLightCard extends HTMLElement {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
         }
         .control-btn {
-            height: 48px; border-radius: 12px; background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
+            height: 48px; border-radius: 12px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              3px 3px 8px rgba(0,0,0,0.08),
+              -3px -3px 8px rgba(255,255,255,0.9);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; color: rgba(0,0,0,0.6);
         }
         /* Active/Pressed State (Inlet) */
         .control-btn:active, .control-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -2px -2px 6px rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.08);
             transform: scale(0.98);
             color: #3b82f6;
         }

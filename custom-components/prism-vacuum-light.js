@@ -303,14 +303,17 @@ class PrismVacuumLightCard extends HTMLElement {
             font-family: system-ui, -apple-system, sans-serif;
           }
           .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: 24px;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 
+              0 10px 30px -5px rgba(0, 0, 0, 0.15),
+              0 4px 10px rgba(0,0,0,0.08),
+              inset 0 1px 1px rgba(255,255,255,0.9);
             padding: 20px;
             color: #1a1a1a;
             user-select: none;
@@ -405,11 +408,23 @@ class PrismVacuumLightCard extends HTMLElement {
               width: 36px; height: 36px; border-radius: 50%;
               display: flex; align-items: center; justify-content: center;
               transition: all 0.2s; cursor: pointer;
-              border: 1px solid rgba(0,0,0,0.05);
-              background: rgba(0,0,0,0.03);
+              border: 1px solid rgba(255,255,255,0.8);
+              background: linear-gradient(145deg, #f0f0f0, #ffffff);
+              box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.08),
+                -2px -2px 6px rgba(255,255,255,0.9);
               color: rgba(0,0,0,0.4);
           }
-          .action-btn:hover { background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.7); }
+          .action-btn:hover { 
+              background: linear-gradient(145deg, #e8e8e8, #f8f8f8); 
+              color: rgba(0,0,0,0.7); 
+          }
+          .action-btn:active {
+              background: linear-gradient(145deg, #e2e2e2, #f0f0f0);
+              box-shadow: 
+                inset 2px 2px 4px rgba(0,0,0,0.1),
+                inset -1px -1px 3px rgba(255,255,255,0.8);
+          }
           .action-btn ha-icon {
               display: flex;
               align-items: center;
@@ -443,10 +458,11 @@ class PrismVacuumLightCard extends HTMLElement {
           
           .vacuum-inlet {
               width: 100%; height: 160px; border-radius: 16px;
-              background: rgba(240, 240, 240, 0.9);
-              box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-              border-bottom: 1px solid rgba(0,0,0,0.05);
-              border-top: 1px solid rgba(255,255,255,0.6);
+              background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+              box-shadow: 
+                inset 4px 4px 10px rgba(0,0,0,0.12),
+                inset -4px -4px 10px rgba(255,255,255,0.9);
+              border: 1px solid rgba(0,0,0,0.05);
               position: relative; overflow: hidden;
               cursor: pointer;
           }

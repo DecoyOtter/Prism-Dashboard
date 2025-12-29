@@ -175,14 +175,16 @@ class PrismButtonLightCard extends HTMLElement {
           display: block;
         }
         ha-card {
-          background: ${isActive ? 'rgba(240, 240, 240, 0.6)' : 'rgba(255, 255, 255, 0.7)'} !important;
-          backdrop-filter: blur(12px) !important;
-          -webkit-backdrop-filter: blur(12px) !important;
+          background: ${isActive ? 'linear-gradient(145deg, #e6e6e6, #f0f0f0)' : 'rgba(255, 255, 255, 0.65)'} !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
           border-radius: 16px !important;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: ${isActive ? '1px solid rgba(255,255,255,0.6)' : '1px solid rgba(255, 255, 255, 0.8)'} !important;
-          border-bottom: ${isActive ? '1px solid rgba(0,0,0,0.15)' : '1px solid rgba(0, 0, 0, 0.1)'} !important;
-          box-shadow: ${isActive ? 'inset 3px 3px 6px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.9)' : '0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05)'} !important;
+          border: 1px solid ${isActive ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.6)'};
+          border-top: ${isActive ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255, 255, 255, 0.9)'} !important;
+          border-bottom: ${isActive ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(0, 0, 0, 0.15)'} !important;
+          box-shadow: ${isActive 
+            ? 'inset 4px 4px 10px rgba(0,0,0,0.15), inset -3px -3px 8px rgba(255,255,255,0.8)' 
+            : '0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.9)'} !important;
           --primary-text-color: #1a1a1a;
           --secondary-text-color: #666;
           transition: all 0.2s ease-in-out;

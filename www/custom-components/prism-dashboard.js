@@ -3,7 +3,7 @@
  * https://github.com/BangerTech/Prism-Dashboard
  * 
  * Version: 1.0.0
- * Build Date: 2025-12-29T17:25:12.104Z
+ * Build Date: 2025-12-29T17:38:52.016Z
  * 
  * This file contains all Prism custom cards bundled together.
  * Just add this single file as a resource in Lovelace:
@@ -519,14 +519,16 @@ class PrismButtonLightCard extends HTMLElement {
           display: block;
         }
         ha-card {
-          background: ${isActive ? 'rgba(240, 240, 240, 0.6)' : 'rgba(255, 255, 255, 0.7)'} !important;
-          backdrop-filter: blur(12px) !important;
-          -webkit-backdrop-filter: blur(12px) !important;
+          background: ${isActive ? 'linear-gradient(145deg, #e6e6e6, #f0f0f0)' : 'rgba(255, 255, 255, 0.65)'} !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
           border-radius: 16px !important;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: ${isActive ? '1px solid rgba(255,255,255,0.6)' : '1px solid rgba(255, 255, 255, 0.8)'} !important;
-          border-bottom: ${isActive ? '1px solid rgba(0,0,0,0.15)' : '1px solid rgba(0, 0, 0, 0.1)'} !important;
-          box-shadow: ${isActive ? 'inset 3px 3px 6px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.9)' : '0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05)'} !important;
+          border: 1px solid ${isActive ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.6)'};
+          border-top: ${isActive ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255, 255, 255, 0.9)'} !important;
+          border-bottom: ${isActive ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(0, 0, 0, 0.15)'} !important;
+          box-shadow: ${isActive 
+            ? 'inset 4px 4px 10px rgba(0,0,0,0.15), inset -3px -3px 8px rgba(255,255,255,0.8)' 
+            : '0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.9)'} !important;
           --primary-text-color: #1a1a1a;
           --secondary-text-color: #666;
           transition: all 0.2s ease-in-out;
@@ -1635,14 +1637,17 @@ class PrismHeatLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 20px;
           color: #1a1a1a;
           user-select: none;
@@ -1696,10 +1701,12 @@ class PrismHeatLightCard extends HTMLElement {
         }
         .inlet-track {
             position: absolute; inset: 6.4%; border-radius: 50%;
-            background: rgba(240, 240, 240, 0.9);
-            box-shadow: inset 3px 3px 6px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+            box-shadow: 
+              inset 4px 4px 10px rgba(0,0,0,0.15),
+              inset -4px -4px 10px rgba(255,255,255,0.9),
+              inset 1px 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
         }
         svg {
             position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
@@ -1707,9 +1714,13 @@ class PrismHeatLightCard extends HTMLElement {
         }
         .knob-handle {
             position: absolute; width: 56%; height: 56%; border-radius: 50%;
-            background: #f5f5f5;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
+            background: linear-gradient(145deg, #ffffff, #e8e8e8);
+            box-shadow: 
+              8px 8px 20px rgba(0,0,0,0.12),
+              -6px -6px 16px rgba(255,255,255,0.9),
+              inset 1px 1px 2px rgba(255,255,255,0.8),
+              inset -1px -1px 2px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
             display: flex; justify-content: center; align-items: center; cursor: pointer;
             overflow: hidden;
         }
@@ -1726,16 +1737,22 @@ class PrismHeatLightCard extends HTMLElement {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
         }
         .mode-btn {
-            height: 48px; border-radius: 12px; background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
+            height: 48px; border-radius: 12px; 
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              3px 3px 8px rgba(0,0,0,0.08),
+              -3px -3px 8px rgba(255,255,255,0.9);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; color: rgba(0,0,0,0.6);
             overflow: hidden; min-width: 0;
         }
         .mode-btn:active, .mode-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -2px -2px 6px rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.08);
             transform: scale(0.98);
         }
         .mode-btn.active.heat { color: #fb923c; }
@@ -2171,34 +2188,83 @@ class PrismHeatSmallCard extends HTMLElement {
         
         /* Header */
         .header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 16px;
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
         
         .icon-box {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 38px; 
+            height: 38px; 
+            min-width: 38px;
+            border-radius: 50%;
             background: ${isHeating ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)'}; 
             color: ${isHeating ? '#fb923c' : 'rgba(255,255,255,0.4)'};
-            display: flex; align-items: center; justify-content: center;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
             box-shadow: ${isHeating ? '0 0 15px rgba(249,115,22,0.3)' : 'none'};
             transition: all 0.5s ease;
             ${isHeating ? 'filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.6));' : ''}
         }
+        .icon-box ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        .info { display: flex; flex-direction: column; }
-        .title { font-size: 15px; font-weight: 700; color: #e0e0e0; line-height: 1.2; }
+        .info { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        }
+        .title { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: #e0e0e0; 
+            line-height: 1.2; 
+        }
         .subtitle { 
-            font-size: 12px; font-weight: 500; color: #999; margin-top: 2px; display: flex; gap: 6px;
+            font-size: 12px; 
+            font-weight: 500; 
+            color: #999; 
+            margin-top: 2px; 
+            display: flex; 
+            gap: 6px;
         }
         
         /* Chip */
         .chip {
-            padding: 4px 10px; border-radius: 20px;
+            padding: 6px 10px; 
+            border-radius: 20px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 6px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px;
+            height: 28px;
+            box-sizing: border-box;
         }
-        .chip-text { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.7); }
+        .chip ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chip-text { 
+            font-size: 10px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: rgba(255,255,255,0.7); 
+            line-height: 1;
+        }
         
         /* Controls */
         .controls {
@@ -2395,14 +2461,17 @@ class PrismHeatSmallLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 20px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 16px;
           color: #1a1a1a;
           user-select: none;
@@ -2411,34 +2480,86 @@ class PrismHeatSmallLightCard extends HTMLElement {
         
         /* Header */
         .header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 16px;
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
         
         .icon-box {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 38px; 
+            height: 38px; 
+            min-width: 38px;
+            border-radius: 50%;
             background: ${isHeating ? 'rgba(249, 115, 22, 0.15)' : 'rgba(0,0,0,0.05)'}; 
             color: ${isHeating ? '#fb923c' : 'rgba(0,0,0,0.4)'};
-            display: flex; align-items: center; justify-content: center;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
             box-shadow: ${isHeating ? '0 0 15px rgba(249,115,22,0.2)' : 'none'};
             transition: all 0.5s ease;
             ${isHeating ? 'filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.4));' : ''}
         }
+        .icon-box ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        .info { display: flex; flex-direction: column; }
-        .title { font-size: 15px; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+        .info { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        }
+        .title { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: #1a1a1a; 
+            line-height: 1.2; 
+        }
         .subtitle { 
-            font-size: 12px; font-weight: 500; color: #666; margin-top: 2px; display: flex; gap: 6px;
+            font-size: 12px; 
+            font-weight: 500; 
+            color: #666; 
+            margin-top: 2px; 
+            display: flex; 
+            gap: 6px;
         }
         
         /* Chip */
         .chip {
-            padding: 4px 10px; border-radius: 20px;
-            background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
-            display: flex; align-items: center; gap: 6px;
+            padding: 6px 10px; 
+            border-radius: 20px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              2px 2px 5px rgba(0,0,0,0.08),
+              -2px -2px 5px rgba(255,255,255,0.9);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px;
+            height: 28px;
+            box-sizing: border-box;
         }
-        .chip-text { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(0,0,0,0.7); }
+        .chip ha-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chip-text { 
+            font-size: 10px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: rgba(0,0,0,0.7); 
+            line-height: 1;
+        }
         
         /* Controls */
         .controls {
@@ -2447,25 +2568,30 @@ class PrismHeatSmallLightCard extends HTMLElement {
         
         .control-btn {
             height: 38px; width: 50px; border-radius: 12px;
-            background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              3px 3px 8px rgba(0,0,0,0.08),
+              -3px -3px 8px rgba(255,255,255,0.9);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; color: rgba(0,0,0,0.7);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .control-btn:active {
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -2px -2px 6px rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.08);
             transform: scale(0.95);
         }
         
         .inlet-display {
             flex: 1; height: 38px; border-radius: 12px;
-            background: rgba(240, 240, 240, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -3px -3px 8px rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.05);
             display: flex; align-items: center; justify-content: center;
         }
         .temp-value {
@@ -3040,14 +3166,17 @@ class PrismMediaLightCard extends HTMLElement {
         }
         .card {
           position: relative;
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           overflow: hidden;
           color: #1a1a1a;
           user-select: none;
@@ -3081,10 +3210,11 @@ class PrismMediaLightCard extends HTMLElement {
         
         .volume-slider {
             flex: 1; height: 16px; border-radius: 16px;
-            background: rgba(240, 240, 240, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -3px -3px 8px rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.05);
             position: relative; overflow: hidden; cursor: pointer;
         }
         .volume-fill {
@@ -3107,8 +3237,11 @@ class PrismMediaLightCard extends HTMLElement {
         /* Circle Buttons (Next/Prev) */
         .media-btn.circle {
             width: 42px; height: 42px; border-radius: 50%;
-            background: rgba(0,0,0,0.03); 
-            border: 1px solid rgba(0,0,0,0.05);
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              3px 3px 8px rgba(0,0,0,0.08),
+              -3px -3px 8px rgba(255,255,255,0.9);
             color: rgba(0,0,0,0.8);
             box-shadow: 0 4px 10px -2px rgba(0,0,0,0.1);
         }
@@ -3890,14 +4023,17 @@ class PrismCalendarLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 20px;
           color: #1a1a1a;
         }
@@ -4465,14 +4601,17 @@ class PrismShutterLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 20px;
           color: #1a1a1a;
           user-select: none;
@@ -4493,10 +4632,11 @@ class PrismShutterLightCard extends HTMLElement {
         /* Inlet Slider Display (Interactive) */
         .slider-track {
             height: 12px; border-radius: 12px; margin-bottom: 24px;
-            background: rgba(240, 240, 240, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -3px -3px 8px rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.05);
             position: relative; overflow: hidden;
             cursor: pointer; touch-action: none;
         }
@@ -4511,16 +4651,22 @@ class PrismShutterLightCard extends HTMLElement {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
         }
         .control-btn {
-            height: 48px; border-radius: 12px; background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
+            height: 48px; border-radius: 12px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 
+              3px 3px 8px rgba(0,0,0,0.08),
+              -3px -3px 8px rgba(255,255,255,0.9);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; color: rgba(0,0,0,0.6);
         }
         /* Active/Pressed State (Inlet) */
         .control-btn:active, .control-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
-            border-top: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+            box-shadow: 
+              inset 3px 3px 8px rgba(0,0,0,0.12),
+              inset -2px -2px 6px rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.08);
             transform: scale(0.98);
             color: #3b82f6;
         }
@@ -5097,13 +5243,16 @@ class PrismShutterVerticalLightCard extends HTMLElement {
             width: 140px;
             height: 340px;
             border-radius: 24px;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 
+              0 10px 30px -5px rgba(0, 0, 0, 0.15),
+              0 4px 10px rgba(0,0,0,0.08),
+              inset 0 1px 1px rgba(255,255,255,0.9);
             display: flex;
             flex-direction: row;
             padding: 12px;
@@ -5183,8 +5332,11 @@ class PrismShutterVerticalLightCard extends HTMLElement {
           
           .control-btn {
               width: 100%; border-radius: 8px;
-              background: rgba(0,0,0,0.03);
-              border: 1px solid rgba(0,0,0,0.05);
+              background: linear-gradient(145deg, #f0f0f0, #ffffff);
+              border: 1px solid rgba(255,255,255,0.8);
+              box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.08),
+                -2px -2px 6px rgba(255,255,255,0.9);
               display: flex; align-items: center; justify-content: center;
               color: rgba(0,0,0,0.7);
               cursor: pointer;
@@ -5203,9 +5355,12 @@ class PrismShutterVerticalLightCard extends HTMLElement {
           .control-btn.btn-stop { height: 32px; }
           
           .control-btn:active {
-              background: rgba(255, 255, 255, 0.9);
-              box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.8);
-              color: #1a1a1a; border-top: 1px solid rgba(255,255,255,0.6);
+              background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+              box-shadow: 
+                inset 3px 3px 6px rgba(0,0,0,0.12),
+                inset -2px -2px 4px rgba(255,255,255,0.8);
+              color: #1a1a1a; 
+              border: 1px solid rgba(0,0,0,0.08);
           }
   
         </style>
@@ -6303,14 +6458,17 @@ class PrismVacuumLightCard extends HTMLElement {
             font-family: system-ui, -apple-system, sans-serif;
           }
           .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: 24px;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 
+              0 10px 30px -5px rgba(0, 0, 0, 0.15),
+              0 4px 10px rgba(0,0,0,0.08),
+              inset 0 1px 1px rgba(255,255,255,0.9);
             padding: 20px;
             color: #1a1a1a;
             user-select: none;
@@ -6405,11 +6563,23 @@ class PrismVacuumLightCard extends HTMLElement {
               width: 36px; height: 36px; border-radius: 50%;
               display: flex; align-items: center; justify-content: center;
               transition: all 0.2s; cursor: pointer;
-              border: 1px solid rgba(0,0,0,0.05);
-              background: rgba(0,0,0,0.03);
+              border: 1px solid rgba(255,255,255,0.8);
+              background: linear-gradient(145deg, #f0f0f0, #ffffff);
+              box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.08),
+                -2px -2px 6px rgba(255,255,255,0.9);
               color: rgba(0,0,0,0.4);
           }
-          .action-btn:hover { background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.7); }
+          .action-btn:hover { 
+              background: linear-gradient(145deg, #e8e8e8, #f8f8f8); 
+              color: rgba(0,0,0,0.7); 
+          }
+          .action-btn:active {
+              background: linear-gradient(145deg, #e2e2e2, #f0f0f0);
+              box-shadow: 
+                inset 2px 2px 4px rgba(0,0,0,0.1),
+                inset -1px -1px 3px rgba(255,255,255,0.8);
+          }
           .action-btn ha-icon {
               display: flex;
               align-items: center;
@@ -6443,10 +6613,11 @@ class PrismVacuumLightCard extends HTMLElement {
           
           .vacuum-inlet {
               width: 100%; height: 160px; border-radius: 16px;
-              background: rgba(240, 240, 240, 0.9);
-              box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
-              border-bottom: 1px solid rgba(0,0,0,0.05);
-              border-top: 1px solid rgba(255,255,255,0.6);
+              background: linear-gradient(145deg, #e6e6e6, #f8f8f8);
+              box-shadow: 
+                inset 4px 4px 10px rgba(0,0,0,0.12),
+                inset -4px -4px 10px rgba(255,255,255,0.9);
+              border: 1px solid rgba(0,0,0,0.05);
               position: relative; overflow: hidden;
               cursor: pointer;
           }
@@ -7640,14 +7811,17 @@ class PrismLedLightCard extends HTMLElement {
             font-family: system-ui, -apple-system, sans-serif;
           }
           .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: 24px;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 
+              0 10px 30px -5px rgba(0, 0, 0, 0.15),
+              0 4px 10px rgba(0,0,0,0.08),
+              inset 0 1px 1px rgba(255,255,255,0.9);
             padding: 20px;
             color: #1a1a1a;
             user-select: none;
@@ -7711,9 +7885,11 @@ class PrismLedLightCard extends HTMLElement {
               background: transparent;
           }
           .mode-btn.active {
-              background: rgba(255, 255, 255, 0.95);
-              box-shadow: inset 2px 2px 5px rgba(255,255,255,0.9), inset -1px -1px 2px rgba(0,0,0,0.1);
-              border-top: 1px solid rgba(255,255,255,0.7);
+              background: linear-gradient(145deg, #e6e6e6, #f0f0f0);
+              box-shadow: 
+                inset 3px 3px 6px rgba(0,0,0,0.1),
+                inset -2px -2px 4px rgba(255,255,255,0.9);
+              border: 1px solid rgba(0,0,0,0.05);
               color: #1a1a1a;
           }
           
@@ -9832,9 +10008,11 @@ class PrismSidebarLightCard extends HTMLElement {
                 margin-bottom: 32px;
                 padding: 16px;
                 border-radius: 16px;
-                background: rgba(240, 240, 240, 0.6);
+                background: linear-gradient(145deg, #e8e8e8, #f5f5f5);
                 border: 1px solid rgba(0, 0, 0, 0.05);
-                box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
+                box-shadow: 
+                    inset 3px 3px 8px rgba(0,0,0,0.1),
+                    inset -3px -3px 8px rgba(255,255,255,0.9);
                 display: flex; align-items: center; gap: 16px;
                 cursor: pointer;
                 transition: background 0.3s;
@@ -9939,9 +10117,11 @@ class PrismSidebarLightCard extends HTMLElement {
             .energy-pill {
                 height: 64px;
                 border-radius: 16px;
-                background: rgba(240, 240, 240, 0.6);
+                background: linear-gradient(145deg, #e8e8e8, #f5f5f5);
                 border: 1px solid rgba(0, 0, 0, 0.05);
-                box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
+                box-shadow: 
+                    inset 3px 3px 8px rgba(0,0,0,0.1),
+                    inset -3px -3px 8px rgba(255,255,255,0.9);
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 cursor: pointer; transition: background 0.3s;
                 padding-top: 8px;

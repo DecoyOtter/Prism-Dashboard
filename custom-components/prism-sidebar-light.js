@@ -692,9 +692,11 @@ class PrismSidebarLightCard extends HTMLElement {
                 margin-bottom: 32px;
                 padding: 16px;
                 border-radius: 16px;
-                background: rgba(240, 240, 240, 0.6);
+                background: linear-gradient(145deg, #e8e8e8, #f5f5f5);
                 border: 1px solid rgba(0, 0, 0, 0.05);
-                box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
+                box-shadow: 
+                    inset 3px 3px 8px rgba(0,0,0,0.1),
+                    inset -3px -3px 8px rgba(255,255,255,0.9);
                 display: flex; align-items: center; gap: 16px;
                 cursor: pointer;
                 transition: background 0.3s;
@@ -799,9 +801,11 @@ class PrismSidebarLightCard extends HTMLElement {
             .energy-pill {
                 height: 64px;
                 border-radius: 16px;
-                background: rgba(240, 240, 240, 0.6);
+                background: linear-gradient(145deg, #e8e8e8, #f5f5f5);
                 border: 1px solid rgba(0, 0, 0, 0.05);
-                box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -1px -1px 2px rgba(0,0,0,0.1);
+                box-shadow: 
+                    inset 3px 3px 8px rgba(0,0,0,0.1),
+                    inset -3px -3px 8px rgba(255,255,255,0.9);
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 cursor: pointer; transition: background 0.3s;
                 padding-top: 8px;

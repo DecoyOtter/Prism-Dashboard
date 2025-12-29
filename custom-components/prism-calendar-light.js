@@ -292,14 +292,17 @@ class PrismCalendarLightCard extends HTMLElement {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           border-radius: 16px;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-top: 1px solid rgba(255, 255, 255, 0.8);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0,0,0,0.05);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-top: 1px solid rgba(255, 255, 255, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 10px 30px -5px rgba(0, 0, 0, 0.15),
+            0 4px 10px rgba(0,0,0,0.08),
+            inset 0 1px 1px rgba(255,255,255,0.9);
           padding: 20px;
           color: #1a1a1a;
         }
