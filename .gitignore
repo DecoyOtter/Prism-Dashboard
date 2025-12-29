@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Internal documentation (not for GitHub)
+Prism-Dashboard.md
+
+# Build scripts (internal use)
+scripts/
+
+# Node modules (if added later)
+node_modules/
+package-lock.json
+
+# Temporary files
+*.tmp
+*.log
