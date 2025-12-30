@@ -552,6 +552,17 @@ solar_module3_name: "House"
 | `solar_module3_name` | string | No | Name for module 3 (e.g., "House") |
 | `solar_module4` | entity | No | Solar Charger 4 Entity |
 | `solar_module4_name` | string | No | Name for module 4 |
+| **Pill Positions** | | | *Optional - customize pill placement on image* |
+| `solar_pill_top` | number | No | Solar pill vertical position (default: 22%) |
+| `solar_pill_left` | number | No | Solar pill horizontal position (default: 52%) |
+| `grid_pill_top` | number | No | Grid pill vertical position (default: 32%) |
+| `grid_pill_left` | number | No | Grid pill horizontal position (default: 18%) |
+| `home_pill_top` | number | No | Home pill vertical position (default: 54%) |
+| `home_pill_left` | number | No | Home pill horizontal position (default: 55%) |
+| `battery_pill_top` | number | No | Battery pill vertical position (default: 60%) |
+| `battery_pill_left` | number | No | Battery pill horizontal position (default: 88%) |
+| `ev_pill_top` | number | No | EV pill vertical position (default: 72%) |
+| `ev_pill_left` | number | No | EV pill horizontal position (default: 22%) |
 
 ---
 
@@ -653,6 +664,15 @@ solar_module3_name: "House"
 **Configuration Options:**
 
 Identical to the standard version `prism-energy` (see above). The card uses the same entities and configuration options.
+
+**Note:** The default pill positions differ from the standard version:
+| Pill | Top | Left |
+|------|-----|------|
+| Solar | 21% | 55% |
+| Grid | 34% | 18% |
+| Home | 50% | 52% |
+| Battery | 62% | 88% |
+| EV | 70% | 20% |
 
 **Layout Recommendations:**
 

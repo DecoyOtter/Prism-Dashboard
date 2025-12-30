@@ -40,6 +40,9 @@ It combines semi-transparent "frosted glass" surfaces with neumorphism elements 
 
 Prism is optimized for wall tablets and smartphones and is ideal as a central smart home hub for everyday use.
 
+> **📝 Note:** The dashboard configuration (YAML) was completely hand-written by me.  
+> The custom JavaScript cards were developed with AI assistance (Cursor AI).
+
 
 <p align="center">
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FD26FHKRWS3US" target="_blank" rel="noopener noreferrer">
@@ -205,6 +208,15 @@ For bugs, questions, or feature requests:
 - Alternatively: Contact me directly (e.g., via your preferred profile, if linked here).
 
 Feedback, suggestions, and screenshots of your own setups are always welcome!
+
+---
+
+## Development
+
+Built with AI assistance (Cursor AI)
+
+The cards were created collaboratively using AI-assisted development. All features 
+have been tested and the code is actively maintained.
 
 ---
 

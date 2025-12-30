@@ -3,7 +3,7 @@
  * https://github.com/BangerTech/Prism-Dashboard
  * 
  * Version: 1.0.0
- * Build Date: 2025-12-30T08:11:45.889Z
+ * Build Date: 2025-12-30T10:46:57.924Z
  * 
  * This file contains all Prism custom cards bundled together.
  * Just add this single file as a resource in Lovelace:
@@ -10794,7 +10794,7 @@ window.customCards.push({
  * - Day/Night transitions with house dimming
  * - Sunrise/Sunset effects
  * 
- * @version 1.1.0
+ * @version 1.2.0
  * @author BangerTech
  */
 
@@ -10833,7 +10833,18 @@ class PrismEnergyCard extends HTMLElement {
       solar_module3: "",
       solar_module3_name: "",
       solar_module4: "",
-      solar_module4_name: ""
+      solar_module4_name: "",
+      // Pill positions (optional - in percent)
+      solar_pill_top: 22,
+      solar_pill_left: 52,
+      grid_pill_top: 32,
+      grid_pill_left: 18,
+      home_pill_top: 54,
+      home_pill_left: 55,
+      battery_pill_top: 60,
+      battery_pill_left: 88,
+      ev_pill_top: 72,
+      ev_pill_left: 22
     };
   }
 
@@ -10993,6 +11004,93 @@ class PrismEnergyCard extends HTMLElement {
               selector: { text: {} }
             }
           ]
+        },
+        {
+          type: "expandable",
+          name: "",
+          title: "📍 Pill Positions (optional - in %)",
+          schema: [
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "solar_pill_top",
+                  label: "☀️ Solar Top 22%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "solar_pill_left",
+                  label: "☀️ Solar Left 52%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "grid_pill_top",
+                  label: "⚡ Grid Top 32%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "grid_pill_left",
+                  label: "⚡ Grid Left 18%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "home_pill_top",
+                  label: "🏠 Home Top 54%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "home_pill_left",
+                  label: "🏠 Home Left 55%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "battery_pill_top",
+                  label: "🔋 Battery Top 60%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "battery_pill_left",
+                  label: "🔋 Battery Left 88%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "ev_pill_top",
+                  label: "🚗 EV Top 72%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "ev_pill_left",
+                  label: "🚗 EV Left 22%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            }
+          ]
         }
       ]
     };
@@ -11026,7 +11124,18 @@ class PrismEnergyCard extends HTMLElement {
       solar_module3: config.solar_module3 || "",
       solar_module3_name: config.solar_module3_name || "Module 3",
       solar_module4: config.solar_module4 || "",
-      solar_module4_name: config.solar_module4_name || "Module 4"
+      solar_module4_name: config.solar_module4_name || "Module 4",
+      // Pill positions (in percent) - default values match current layout
+      solar_pill_top: config.solar_pill_top ?? 22,
+      solar_pill_left: config.solar_pill_left ?? 52,
+      grid_pill_top: config.grid_pill_top ?? 32,
+      grid_pill_left: config.grid_pill_left ?? 18,
+      home_pill_top: config.home_pill_top ?? 54,
+      home_pill_left: config.home_pill_left ?? 55,
+      battery_pill_top: config.battery_pill_top ?? 60,
+      battery_pill_left: config.battery_pill_left ?? 88,
+      ev_pill_top: config.ev_pill_top ?? 72,
+      ev_pill_left: config.ev_pill_left ?? 22
     };
   }
 
@@ -11928,23 +12037,38 @@ class PrismEnergyCard extends HTMLElement {
     
     if (isBatteryCharging) batteryIcon = "mdi:battery-charging";
 
-    // SVG Paths for energy flows (adjusted for the house image layout)
+    // Get pill positions from config (with defaults)
+    const pillPos = {
+      solar: { x: this._config.solar_pill_left, y: this._config.solar_pill_top },
+      grid: { x: this._config.grid_pill_left, y: this._config.grid_pill_top },
+      home: { x: this._config.home_pill_left, y: this._config.home_pill_top },
+      battery: { x: this._config.battery_pill_left, y: this._config.battery_pill_top },
+      ev: { x: this._config.ev_pill_left, y: this._config.ev_pill_top }
+    };
+
+    // Helper to calculate control point for smooth curves
+    const midPoint = (p1, p2) => ({
+      x: (p1.x + p2.x) / 2,
+      y: (p1.y + p2.y) / 2
+    });
+
+    // SVG Paths for energy flows (dynamically calculated based on pill positions)
     const paths = {
-      // Solar flows from top (roof area) - adjusted for pill positions
-      solarToHome: "M 52 22 Q 53 40 55 54",
-      solarToBattery: "M 52 22 Q 68 38 88 60",
-      solarToGrid: "M 52 22 Q 35 27 18 32",
-      solarToEv: "M 52 22 Q 38 48 22 72",
+      // Solar flows from top (roof area)
+      solarToHome: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.home).x + 1} ${midPoint(pillPos.solar, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      solarToBattery: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.battery).x} ${midPoint(pillPos.solar, pillPos.battery).y} ${pillPos.battery.x} ${pillPos.battery.y}`,
+      solarToGrid: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.grid).x} ${midPoint(pillPos.solar, pillPos.grid).y} ${pillPos.grid.x} ${pillPos.grid.y}`,
+      solarToEv: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.ev).x} ${midPoint(pillPos.solar, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
       
       // Grid flows from left (power pole)
-      gridToHome: "M 18 32 Q 36 45 55 54",
-      gridToBattery: "M 18 32 Q 52 48 88 60",
-      gridToEv: "M 18 32 Q 20 52 22 72",
+      gridToHome: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.home).x} ${midPoint(pillPos.grid, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      gridToBattery: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.battery).x} ${midPoint(pillPos.grid, pillPos.battery).y} ${pillPos.battery.x} ${pillPos.battery.y}`,
+      gridToEv: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.ev).x} ${midPoint(pillPos.grid, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
       
       // Battery flows from right (battery storage)
-      batteryToHome: "M 88 60 Q 72 58 55 54",
-      batteryToEv: "M 88 60 Q 55 68 22 72",
-      batteryToGrid: "M 88 60 Q 52 48 18 32"
+      batteryToHome: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.home).x} ${midPoint(pillPos.battery, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      batteryToEv: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.ev).x} ${midPoint(pillPos.battery, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
+      batteryToGrid: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.grid).x} ${midPoint(pillPos.battery, pillPos.grid).y} ${pillPos.grid.x} ${pillPos.grid.y}`
     };
 
     // Colors
@@ -12459,7 +12583,7 @@ class PrismEnergyCard extends HTMLElement {
           </svg>
 
           <!-- Solar Pill (Top - Roof) - Clickable for history -->
-          <div class="pill pill-solar" style="top: 22%; left: 52%;" data-entity="${this._config.solar_power}">
+          <div class="pill pill-solar" style="top: ${pillPos.solar.y}%; left: ${pillPos.solar.x}%;" data-entity="${this._config.solar_power}">
             <div class="pill-icon ${isSolarActive ? 'bg-solar' : 'bg-inactive'}">
               <ha-icon icon="mdi:solar-power" class="${isSolarActive ? 'color-solar' : 'color-inactive'}"></ha-icon>
             </div>
@@ -12470,7 +12594,7 @@ class PrismEnergyCard extends HTMLElement {
           </div>
 
           <!-- Grid Pill (Left - Power Pole) - Clickable for history -->
-          <div class="pill pill-grid" style="top: 32%; left: 18%;" data-entity="${this._config.grid_power}">
+          <div class="pill pill-grid" style="top: ${pillPos.grid.y}%; left: ${pillPos.grid.x}%;" data-entity="${this._config.grid_power}">
             <div class="pill-icon ${isGridImport || isGridExport ? 'bg-grid' : 'bg-inactive'}">
               <ha-icon icon="mdi:transmission-tower" class="${isGridImport || isGridExport ? 'color-grid' : 'color-inactive'}"></ha-icon>
             </div>
@@ -12481,7 +12605,7 @@ class PrismEnergyCard extends HTMLElement {
           </div>
 
           <!-- Home Pill (Center - House) - Clickable for history -->
-          <div class="pill pill-home" style="top: 54%; left: 55%;" data-entity="${this._config.home_consumption}">
+          <div class="pill pill-home" style="top: ${pillPos.home.y}%; left: ${pillPos.home.x}%;" data-entity="${this._config.home_consumption}">
             <div class="pill-icon bg-home">
               <ha-icon icon="mdi:home-lightning-bolt" class="color-home"></ha-icon>
             </div>
@@ -12492,7 +12616,7 @@ class PrismEnergyCard extends HTMLElement {
           </div>
 
           <!-- Battery Pill (Right - Battery Storage) - Clickable for history -->
-          <div class="pill pill-battery" style="top: 60%; left: 88%;" data-entity="${this._config.battery_soc}">
+          <div class="pill pill-battery" style="top: ${pillPos.battery.y}%; left: ${pillPos.battery.x}%;" data-entity="${this._config.battery_soc}">
             <div class="pill-icon ${isBatteryCharging || isBatteryDischarging ? 'bg-battery' : 'bg-inactive'}">
               <ha-icon icon="${batteryIcon}" class="${isBatteryCharging || isBatteryDischarging ? 'color-battery' : 'color-inactive'}"></ha-icon>
             </div>
@@ -12504,7 +12628,7 @@ class PrismEnergyCard extends HTMLElement {
 
           <!-- EV Pill (Bottom Left - Carport) - Clickable for history -->
           ${hasEV ? `
-          <div class="pill pill-ev" style="top: 72%; left: 22%;" data-entity="${this._config.ev_power}">
+          <div class="pill pill-ev" style="top: ${pillPos.ev.y}%; left: ${pillPos.ev.x}%;" data-entity="${this._config.ev_power}">
             <div class="pill-icon ${isEvCharging ? 'bg-ev' : 'bg-inactive'}">
               <ha-icon icon="mdi:car-electric" class="${isEvCharging ? 'color-ev' : 'color-inactive'}"></ha-icon>
             </div>
@@ -12598,7 +12722,7 @@ window.customCards.push({
 });
 
 console.info(
-  `%c PRISM-ENERGY %c v1.1.0 %c Weather Effects `,
+  `%c PRISM-ENERGY %c v1.2.0 %c Configurable Positions `,
   'background: #F59E0B; color: black; font-weight: bold; padding: 2px 6px; border-radius: 4px 0 0 4px;',
   'background: #1e2024; color: white; font-weight: bold; padding: 2px 6px;',
   'background: #3B82F6; color: white; font-weight: bold; padding: 2px 6px; border-radius: 0 4px 4px 0;'
@@ -12621,7 +12745,7 @@ console.info(
  * - Weather effects (rain, snow, fog, sun, moon, stars)
  * - Day/Night transitions with house dimming
  * 
- * @version 1.1.0
+ * @version 1.2.0
  * @author BangerTech
  */
 
@@ -12661,7 +12785,18 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       solar_module3: "",
       solar_module3_name: "",
       solar_module4: "",
-      solar_module4_name: ""
+      solar_module4_name: "",
+      // Pill positions (optional - in percent)
+      solar_pill_top: 21,
+      solar_pill_left: 55,
+      grid_pill_top: 34,
+      grid_pill_left: 18,
+      home_pill_top: 50,
+      home_pill_left: 52,
+      battery_pill_top: 62,
+      battery_pill_left: 88,
+      ev_pill_top: 70,
+      ev_pill_left: 20
     };
   }
 
@@ -12821,6 +12956,93 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               selector: { text: {} }
             }
           ]
+        },
+        {
+          type: "expandable",
+          name: "",
+          title: "📍 Pill Positions (optional - in %)",
+          schema: [
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "solar_pill_top",
+                  label: "☀️ Solar Top 21%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "solar_pill_left",
+                  label: "☀️ Solar Left 55%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "grid_pill_top",
+                  label: "⚡ Grid Top 34%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "grid_pill_left",
+                  label: "⚡ Grid Left 18%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "home_pill_top",
+                  label: "🏠 Home Top 50%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "home_pill_left",
+                  label: "🏠 Home Left 52%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "battery_pill_top",
+                  label: "🔋 Battery Top 62%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "battery_pill_left",
+                  label: "🔋 Battery Left 88%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            },
+            {
+              type: "grid",
+              name: "",
+              schema: [
+                {
+                  name: "ev_pill_top",
+                  label: "🚗 EV Top 70%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                },
+                {
+                  name: "ev_pill_left",
+                  label: "🚗 EV Left 20%",
+                  selector: { number: { min: 0, max: 100, step: 1, mode: "box" } }
+                }
+              ]
+            }
+          ]
         }
       ]
     };
@@ -12854,7 +13076,18 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       solar_module3: config.solar_module3 || "",
       solar_module3_name: config.solar_module3_name || "Module 3",
       solar_module4: config.solar_module4 || "",
-      solar_module4_name: config.solar_module4_name || "Module 4"
+      solar_module4_name: config.solar_module4_name || "Module 4",
+      // Pill positions (in percent) - default values match current layout
+      solar_pill_top: config.solar_pill_top ?? 21,
+      solar_pill_left: config.solar_pill_left ?? 55,
+      grid_pill_top: config.grid_pill_top ?? 34,
+      grid_pill_left: config.grid_pill_left ?? 18,
+      home_pill_top: config.home_pill_top ?? 50,
+      home_pill_left: config.home_pill_left ?? 52,
+      battery_pill_top: config.battery_pill_top ?? 62,
+      battery_pill_left: config.battery_pill_left ?? 88,
+      ev_pill_top: config.ev_pill_top ?? 70,
+      ev_pill_left: config.ev_pill_left ?? 20
     };
   }
 
@@ -13466,21 +13699,35 @@ class PrismEnergyHorizontalCard extends HTMLElement {
     
     if (isBatteryCharging) batteryIcon = "mdi:battery-charging";
 
-    // SVG Paths for energy flows (matched to pill positions)
-    // Solar: 50,22 | Grid: 18,38 | Home: 52,55 | Battery: 78,62 | EV: 20,75
+    // Get pill positions from config (with defaults)
+    const pillPos = {
+      solar: { x: this._config.solar_pill_left, y: this._config.solar_pill_top },
+      grid: { x: this._config.grid_pill_left, y: this._config.grid_pill_top },
+      home: { x: this._config.home_pill_left, y: this._config.home_pill_top },
+      battery: { x: this._config.battery_pill_left, y: this._config.battery_pill_top },
+      ev: { x: this._config.ev_pill_left, y: this._config.ev_pill_top }
+    };
+
+    // Helper to calculate control point for smooth curves
+    const midPoint = (p1, p2) => ({
+      x: (p1.x + p2.x) / 2,
+      y: (p1.y + p2.y) / 2
+    });
+
+    // SVG Paths for energy flows (dynamically calculated based on pill positions)
     const paths = {
-      solarToHome: "M 55 25 Q 54 38 52 50",
-      solarToBattery: "M 55 25 Q 72 44 88 62",
-      solarToGrid: "M 55 25 Q 36 29 18 34",
-      solarToEv: "M 55 25 Q 36 48 20 70",
+      solarToHome: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.home).x} ${midPoint(pillPos.solar, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      solarToBattery: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.battery).x} ${midPoint(pillPos.solar, pillPos.battery).y} ${pillPos.battery.x} ${pillPos.battery.y}`,
+      solarToGrid: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.grid).x} ${midPoint(pillPos.solar, pillPos.grid).y} ${pillPos.grid.x} ${pillPos.grid.y}`,
+      solarToEv: `M ${pillPos.solar.x} ${pillPos.solar.y} Q ${midPoint(pillPos.solar, pillPos.ev).x} ${midPoint(pillPos.solar, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
       
-      gridToHome: "M 18 34 Q 35 42 52 50",
-      gridToBattery: "M 18 34 Q 53 48 88 62",
-      gridToEv: "M 18 34 Q 19 52 20 70",
+      gridToHome: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.home).x} ${midPoint(pillPos.grid, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      gridToBattery: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.battery).x} ${midPoint(pillPos.grid, pillPos.battery).y} ${pillPos.battery.x} ${pillPos.battery.y}`,
+      gridToEv: `M ${pillPos.grid.x} ${pillPos.grid.y} Q ${midPoint(pillPos.grid, pillPos.ev).x} ${midPoint(pillPos.grid, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
       
-      batteryToHome: "M 88 62 Q 70 56 52 50",
-      batteryToEv: "M 88 62 Q 54 66 20 70",
-      batteryToGrid: "M 88 62 Q 53 48 18 34"
+      batteryToHome: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.home).x} ${midPoint(pillPos.battery, pillPos.home).y} ${pillPos.home.x} ${pillPos.home.y}`,
+      batteryToEv: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.ev).x} ${midPoint(pillPos.battery, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`,
+      batteryToGrid: `M ${pillPos.battery.x} ${pillPos.battery.y} Q ${midPoint(pillPos.battery, pillPos.grid).x} ${midPoint(pillPos.battery, pillPos.grid).y} ${pillPos.grid.x} ${pillPos.grid.y}`
     };
 
     // Colors
@@ -14238,7 +14485,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               </svg>
 
               <!-- Solar Pill (Top - over roof) -->
-              <div class="pill pill-solar" style="top: 21%; left: 55%;" data-entity="${this._config.solar_power}">
+              <div class="pill pill-solar" style="top: ${pillPos.solar.y}%; left: ${pillPos.solar.x}%;" data-entity="${this._config.solar_power}">
                 <div class="pill-icon ${isSolarActive ? 'bg-solar' : 'bg-inactive'}">
                   <ha-icon icon="mdi:solar-power" class="${isSolarActive ? 'color-solar' : 'color-inactive'}"></ha-icon>
                 </div>
@@ -14249,7 +14496,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               </div>
 
               <!-- Grid Pill (on power pole) -->
-              <div class="pill pill-grid" style="top: 34%; left: 18%;" data-entity="${this._config.grid_power}">
+              <div class="pill pill-grid" style="top: ${pillPos.grid.y}%; left: ${pillPos.grid.x}%;" data-entity="${this._config.grid_power}">
                 <div class="pill-icon ${isGridImport || isGridExport ? 'bg-grid' : 'bg-inactive'}">
                   <ha-icon icon="mdi:transmission-tower" class="${isGridImport || isGridExport ? 'color-grid' : 'color-inactive'}"></ha-icon>
                 </div>
@@ -14260,7 +14507,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               </div>
 
               <!-- Home Pill (Center-right - on house) -->
-              <div class="pill pill-home" style="top: 50%; left: 52%;" data-entity="${this._config.home_consumption}">
+              <div class="pill pill-home" style="top: ${pillPos.home.y}%; left: ${pillPos.home.x}%;" data-entity="${this._config.home_consumption}">
                 <div class="pill-icon bg-home">
                   <ha-icon icon="mdi:home-lightning-bolt" class="color-home"></ha-icon>
                 </div>
@@ -14271,7 +14518,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               </div>
 
               <!-- Battery Pill (Right - battery storage) -->
-              <div class="pill pill-battery" style="top: 62%; left: 88%;" data-entity="${this._config.battery_soc}">
+              <div class="pill pill-battery" style="top: ${pillPos.battery.y}%; left: ${pillPos.battery.x}%;" data-entity="${this._config.battery_soc}">
                 <div class="pill-icon ${isBatteryCharging || isBatteryDischarging ? 'bg-battery' : 'bg-inactive'}">
                   <ha-icon icon="${batteryIcon}" class="${isBatteryCharging || isBatteryDischarging ? 'color-battery' : 'color-inactive'}"></ha-icon>
                 </div>
@@ -14283,7 +14530,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
 
               <!-- EV Pill (Bottom Left - carport) -->
               ${hasEV ? `
-              <div class="pill pill-ev" style="top: 70%; left: 20%;" data-entity="${this._config.ev_power}">
+              <div class="pill pill-ev" style="top: ${pillPos.ev.y}%; left: ${pillPos.ev.x}%;" data-entity="${this._config.ev_power}">
                 <div class="pill-icon ${isEvCharging ? 'bg-ev' : 'bg-inactive'}">
                   <ha-icon icon="mdi:car-electric" class="${isEvCharging ? 'color-ev' : 'color-inactive'}"></ha-icon>
                 </div>
@@ -14420,7 +14667,7 @@ window.customCards.push({
 });
 
 console.info(
-  `%c PRISM-ENERGY-HORIZONTAL %c v1.1.0 %c Weather Effects `,
+  `%c PRISM-ENERGY-HORIZONTAL %c v1.2.0 %c Configurable Positions `,
   'background: #F59E0B; color: black; font-weight: bold; padding: 2px 6px; border-radius: 4px 0 0 4px;',
   'background: #1e2024; color: white; font-weight: bold; padding: 2px 6px;',
   'background: #3B82F6; color: white; font-weight: bold; padding: 2px 6px; border-radius: 0 4px 4px 0;'
