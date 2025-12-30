@@ -3,7 +3,13 @@
  * A glassmorphism energy flow card for Home Assistant
  * Designed for OpenEMS/Fenecon integration
  * 
- * @version 1.0.0
+ * Features:
+ * - Animated energy flow visualization
+ * - Weather effects (rain, snow, fog, sun, moon, stars)
+ * - Day/Night transitions with house dimming
+ * - Sunrise/Sunset effects
+ * 
+ * @version 1.1.0
  * @author BangerTech
  */
 
@@ -30,6 +36,10 @@ class PrismEnergyCard extends HTMLElement {
       max_solar_power: 10000,
       max_grid_power: 10000,
       max_consumption: 10000,
+      // Weather effects (optional)
+      enable_weather_effects: false,
+      weather_entity: "",
+      cloud_coverage_entity: "",
       // Solar modules (optional)
       solar_module1: "",
       solar_module1_name: "",
@@ -47,17 +57,17 @@ class PrismEnergyCard extends HTMLElement {
       schema: [
         {
           name: "name",
-          label: "Kartenname",
+          label: "Card Name",
           selector: { text: {} }
         },
         {
           name: "image",
-          label: "Bild-URL (Standard: prism-energy-home.png)",
+          label: "Image URL (default: prism-energy-home.png)",
           selector: { text: {} }
         },
         {
           name: "show_details",
-          label: "Details-Bereich unten anzeigen",
+          label: "Show details section at bottom",
           selector: { boolean: {} }
         },
         {
@@ -66,42 +76,42 @@ class PrismEnergyCard extends HTMLElement {
         },
         {
           name: "solar_power",
-          label: "Solar Leistung (Gesamt)",
+          label: "Solar Power (Total)",
           required: true,
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "grid_power",
-          label: "Netz Leistung (positiv=Bezug, negativ=Einspeisung)",
+          label: "Grid Power (positive=import, negative=export)",
           required: true,
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "battery_soc",
-          label: "Batterie SOC %",
+          label: "Battery SOC %",
           required: true,
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "battery_power",
-          label: "Batterie Leistung (positiv=Entladung, negativ=Ladung)",
+          label: "Battery Power (positive=discharge, negative=charge)",
           required: true,
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "home_consumption",
-          label: "Hausverbrauch",
+          label: "Home Consumption",
           required: true,
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "ev_power",
-          label: "E-Auto Ladeleistung (optional)",
+          label: "EV Charging Power (optional)",
           selector: { entity: { domain: "sensor" } }
         },
         {
           name: "autarky",
-          label: "Autarkie % (optional)",
+          label: "Autarky % (optional)",
           selector: { entity: { domain: "sensor" } }
         },
         {
@@ -111,21 +121,43 @@ class PrismEnergyCard extends HTMLElement {
         {
           type: "expandable",
           name: "",
-          title: "📊 Maximalwerte für Fortschrittsbalken",
+          title: "🌤️ Weather & Day/Night Animation",
+          schema: [
+            {
+              name: "enable_weather_effects",
+              label: "Enable weather effects",
+              selector: { boolean: {} }
+            },
+            {
+              name: "weather_entity",
+              label: "Weather Entity (e.g. weather.home)",
+              selector: { entity: { domain: "weather" } }
+            },
+            {
+              name: "cloud_coverage_entity",
+              label: "Cloud Coverage Sensor (optional, e.g. sensor.openweathermap_cloud_coverage)",
+              selector: { entity: { domain: "sensor" } }
+            }
+          ]
+        },
+        {
+          type: "expandable",
+          name: "",
+          title: "📊 Maximum Values for Progress Bars",
           schema: [
             {
               name: "max_solar_power",
-              label: "Max. Solar-Leistung (Watt) - z.B. 10000 für 10kW",
+              label: "Max Solar Power (Watts) - e.g. 10000 for 10kW",
               selector: { number: { min: 1000, max: 100000, step: 100, mode: "box", unit_of_measurement: "W" } }
             },
             {
               name: "max_grid_power",
-              label: "Max. Netz-Leistung (Watt)",
+              label: "Max Grid Power (Watts)",
               selector: { number: { min: 1000, max: 100000, step: 100, mode: "box", unit_of_measurement: "W" } }
             },
             {
               name: "max_consumption",
-              label: "Max. Verbrauch (Watt)",
+              label: "Max Consumption (Watts)",
               selector: { number: { min: 1000, max: 100000, step: 100, mode: "box", unit_of_measurement: "W" } }
             }
           ]
@@ -133,46 +165,46 @@ class PrismEnergyCard extends HTMLElement {
         {
           type: "expandable",
           name: "",
-          title: "☀️ Solar Module (optional - für Einzelanzeige im Detail-Bereich)",
+          title: "☀️ Solar Modules (optional - for individual display)",
           schema: [
             {
               name: "solar_module1",
-              label: "Solar Modul 1 (Entity)",
+              label: "Solar Module 1 (Entity)",
               selector: { entity: { domain: "sensor" } }
             },
             {
               name: "solar_module1_name",
-              label: "Modul 1 Name (z.B. Büro links)",
+              label: "Module 1 Name (e.g. Roof East)",
               selector: { text: {} }
             },
             {
               name: "solar_module2",
-              label: "Solar Modul 2 (Entity)",
+              label: "Solar Module 2 (Entity)",
               selector: { entity: { domain: "sensor" } }
             },
             {
               name: "solar_module2_name",
-              label: "Modul 2 Name (z.B. Büro rechts)",
+              label: "Module 2 Name (e.g. Roof West)",
               selector: { text: {} }
             },
             {
               name: "solar_module3",
-              label: "Solar Modul 3 (Entity)",
+              label: "Solar Module 3 (Entity)",
               selector: { entity: { domain: "sensor" } }
             },
             {
               name: "solar_module3_name",
-              label: "Modul 3 Name (z.B. Wohnhaus)",
+              label: "Module 3 Name (e.g. Garage)",
               selector: { text: {} }
             },
             {
               name: "solar_module4",
-              label: "Solar Modul 4 (Entity)",
+              label: "Solar Module 4 (Entity)",
               selector: { entity: { domain: "sensor" } }
             },
             {
               name: "solar_module4_name",
-              label: "Modul 4 Name",
+              label: "Module 4 Name",
               selector: { text: {} }
             }
           ]
@@ -197,15 +229,19 @@ class PrismEnergyCard extends HTMLElement {
       max_solar_power: config.max_solar_power || 10000,
       max_grid_power: config.max_grid_power || 10000,
       max_consumption: config.max_consumption || 10000,
+      // Weather effects
+      enable_weather_effects: config.enable_weather_effects || false,
+      weather_entity: config.weather_entity || "",
+      cloud_coverage_entity: config.cloud_coverage_entity || "",
       // Solar modules
       solar_module1: config.solar_module1 || "",
-      solar_module1_name: config.solar_module1_name || "Modul 1",
+      solar_module1_name: config.solar_module1_name || "Module 1",
       solar_module2: config.solar_module2 || "",
-      solar_module2_name: config.solar_module2_name || "Modul 2",
+      solar_module2_name: config.solar_module2_name || "Module 2",
       solar_module3: config.solar_module3 || "",
-      solar_module3_name: config.solar_module3_name || "Modul 3",
+      solar_module3_name: config.solar_module3_name || "Module 3",
       solar_module4: config.solar_module4 || "",
-      solar_module4_name: config.solar_module4_name || "Modul 4"
+      solar_module4_name: config.solar_module4_name || "Module 4"
     };
   }
 
@@ -217,6 +253,47 @@ class PrismEnergyCard extends HTMLElement {
       this._initialized = true;
     } else {
       this._updateValues();
+      this._updateWeatherIfChanged();
+    }
+  }
+
+  // Check if weather conditions changed and update only weather elements
+  _updateWeatherIfChanged() {
+    if (!this._config.enable_weather_effects || !this._config.weather_entity) return;
+    
+    const weatherData = this._getWeatherData();
+    // Include cloud coverage in key (rounded to 10% steps to avoid too frequent updates)
+    const cloudKey = weatherData.cloudCoverage !== null ? Math.round(weatherData.cloudCoverage / 10) * 10 : 'none';
+    const weatherKey = `${weatherData.weatherType}-${weatherData.isNight}-${weatherData.isSunrise}-${weatherData.isSunset}-${cloudKey}`;
+    
+    // Only update if weather state changed
+    if (this._lastWeatherKey === weatherKey) return;
+    this._lastWeatherKey = weatherKey;
+    
+    // Update weather container
+    const weatherContainer = this.shadowRoot.querySelector('.weather-container');
+    if (weatherContainer) {
+      weatherContainer.remove();
+    }
+    
+    const visualContainer = this.shadowRoot.querySelector('.visual-container');
+    if (visualContainer) {
+      visualContainer.insertAdjacentHTML('afterbegin', this._renderWeatherEffects(weatherData));
+      
+      // Update night-mode classes
+      const houseImg = this.shadowRoot.querySelector('.house-img');
+      if (houseImg) {
+        houseImg.classList.toggle('night-mode', weatherData.isNight);
+      }
+      visualContainer.classList.toggle('night-mode', weatherData.isNight);
+    }
+    
+    // Update weather label in header
+    const weatherStatus = this.shadowRoot.querySelector('.weather-status');
+    if (weatherStatus) {
+      const dayNightLabel = this._getDayNightLabel(weatherData.isNight);
+      const weatherTypeLabel = this._getWeatherLabel(weatherData);
+      weatherStatus.textContent = `${dayNightLabel} • ${weatherTypeLabel}`;
     }
   }
 
@@ -240,7 +317,7 @@ class PrismEnergyCard extends HTMLElement {
     
     if (this._config.ev_power) {
       const isEvCharging = evPower > 50;
-      this._updateElement('.pill-ev .pill-val', isEvCharging ? this._formatPower(evPower) : 'Idle');
+      this._updateElement('.pill-ev .pill-val', isEvCharging ? this._formatPower(evPower) : this._t('idle'));
     }
     
     if (this._config.autarky) {
@@ -372,25 +449,25 @@ class PrismEnergyCard extends HTMLElement {
     if (this._config.solar_module1) {
       modules.push({
         entity: this._config.solar_module1,
-        name: this._config.solar_module1_name || "Modul 1"
+        name: this._config.solar_module1_name || "Module 1"
       });
     }
     if (this._config.solar_module2) {
       modules.push({
         entity: this._config.solar_module2,
-        name: this._config.solar_module2_name || "Modul 2"
+        name: this._config.solar_module2_name || "Module 2"
       });
     }
     if (this._config.solar_module3) {
       modules.push({
         entity: this._config.solar_module3,
-        name: this._config.solar_module3_name || "Modul 3"
+        name: this._config.solar_module3_name || "Module 3"
       });
     }
     if (this._config.solar_module4) {
       modules.push({
         entity: this._config.solar_module4,
-        name: this._config.solar_module4_name || "Modul 4"
+        name: this._config.solar_module4_name || "Module 4"
       });
     }
 
@@ -412,31 +489,617 @@ class PrismEnergyCard extends HTMLElement {
     // Default: show total power only
     return `
       <div class="detail-row">
-        <span class="detail-label">Leistung</span>
+        <span class="detail-label">${this._t('power')}</span>
         <span class="detail-val" style="color: ${color};">${this._formatPower(totalPower)}</span>
       </div>
     `;
   }
 
-  // Generate animated flow path with "Fake Glow" - 3 layered paths instead of filters
+  // Generate animated flow path with real SVG filter glow (CodePen style)
   _renderFlow(path, color, active, reverse = false, className = '') {
     const direction = reverse ? 'reverse' : '';
     const display = active ? 'block' : 'none';
+    // Create unique filter ID based on color
+    const filterId = `glow-${color.replace('#', '').replace(/[^a-zA-Z0-9]/g, '')}`;
     
     return `
       <g class="flow-group ${className}" style="display: ${display};">
-        <!-- Background track (always visible when flow is active) -->
-        <path d="${path}" fill="none" stroke="${color}" stroke-width="0.6" stroke-opacity="0.15" stroke-linecap="round" />
+        <!-- Background track (pulsing, async) -->
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="0.5" stroke-linecap="round" class="flow-track" />
         
-        <!-- LAYER 1: Breiter, sehr transparenter Outer Glow -->
-        <path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-opacity="0.1" stroke-linecap="round" class="flow-beam ${direction}" />
+        <!-- Glowing animated beam with SVG filter -->
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="1.2" stroke-opacity="0.9" stroke-linecap="round" 
+              class="flow-beam ${direction}" filter="url(#strokeGlow)" />
         
-        <!-- LAYER 2: Mittlerer Inner Glow -->
-        <path d="${path}" fill="none" stroke="${color}" stroke-width="1.5" stroke-opacity="0.4" stroke-linecap="round" class="flow-beam ${direction}" />
-        
-        <!-- LAYER 3: Dünner, heller Kern -->
-        <path d="${path}" fill="none" stroke="#ffffff" stroke-width="0.1" stroke-opacity="0.3" stroke-linecap="round" class="flow-beam ${direction}" />
+        <!-- Bright core with soft edges -->
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="0.5" stroke-opacity="0.85" stroke-linecap="round" 
+              class="flow-beam ${direction}" filter="url(#softEdge)" />
       </g>
+    `;
+  }
+
+  // Get weather icon based on conditions
+  _getWeatherIcon(weatherData) {
+    if (!weatherData.enabled) return 'mdi:weather-sunny';
+    
+    const { weatherType, isNight } = weatherData;
+    
+    if (isNight) {
+      if (weatherType === 'cloudy') return 'mdi:weather-night-partly-cloudy';
+      if (weatherType === 'rainy') return 'mdi:weather-rainy';
+      if (weatherType === 'snowy') return 'mdi:weather-snowy';
+      if (weatherType === 'foggy') return 'mdi:weather-fog';
+      if (weatherType === 'stormy') return 'mdi:weather-lightning';
+      return 'mdi:weather-night';
+    } else {
+      if (weatherType === 'cloudy') return 'mdi:weather-partly-cloudy';
+      if (weatherType === 'rainy') return 'mdi:weather-rainy';
+      if (weatherType === 'snowy') return 'mdi:weather-snowy';
+      if (weatherType === 'foggy') return 'mdi:weather-fog';
+      if (weatherType === 'stormy') return 'mdi:weather-lightning';
+      if (weatherType === 'windy') return 'mdi:weather-windy';
+      return 'mdi:weather-sunny';
+    }
+  }
+
+  // Get weather label for display (supports EN/DE based on HA language)
+  _getWeatherLabel(weatherData) {
+    if (!weatherData.enabled) return '';
+    
+    // Check Home Assistant language
+    const lang = this._hass?.language || this._hass?.locale?.language || 'de';
+    const isEnglish = lang.startsWith('en');
+    
+    const labels = isEnglish ? {
+      'sunny': 'Sunny',
+      'clear': 'Clear',
+      'cloudy': 'Cloudy',
+      'rainy': 'Rain',
+      'snowy': 'Snow',
+      'foggy': 'Fog',
+      'stormy': 'Storm',
+      'windy': 'Windy'
+    } : {
+      'sunny': 'Sonnig',
+      'clear': 'Klar',
+      'cloudy': 'Bewölkt',
+      'rainy': 'Regen',
+      'snowy': 'Schnee',
+      'foggy': 'Nebel',
+      'stormy': 'Gewitter',
+      'windy': 'Windig'
+    };
+    
+    return labels[weatherData.weatherType] || weatherData.weatherType;
+  }
+
+  // Get day/night label based on HA language
+  _getDayNightLabel(isNight) {
+    const lang = this._hass?.language || this._hass?.locale?.language || 'de';
+    const isEnglish = lang.startsWith('en');
+    
+    if (isEnglish) {
+      return isNight ? 'Night' : 'Day';
+    }
+    return isNight ? 'Nacht' : 'Tag';
+  }
+
+  // Translate UI labels based on HA language (card display only, not editor)
+  _t(key) {
+    const lang = this._hass?.language || this._hass?.locale?.language || 'de';
+    const isEnglish = lang.startsWith('en');
+    
+    const translations = {
+      // Pill labels
+      'production': isEnglish ? 'Production' : 'Erzeugung',
+      'inactive': isEnglish ? 'Inactive' : 'Inaktiv',
+      'export': isEnglish ? 'Export' : 'Einspeisung',
+      'import': isEnglish ? 'Import' : 'Bezug',
+      'neutral': isEnglish ? 'Neutral' : 'Neutral',
+      'consumption': isEnglish ? 'Consumption' : 'Verbrauch',
+      'charging': isEnglish ? 'Charging' : 'Ladung',
+      'discharging': isEnglish ? 'Discharging' : 'Entladung',
+      'standby': isEnglish ? 'Standby' : 'Standby',
+      'idle': isEnglish ? 'Idle' : 'Inaktiv',
+      // Detail headers
+      'grid': isEnglish ? 'Grid' : 'Netz',
+      'storage': isEnglish ? 'Storage' : 'Speicher',
+      'current': isEnglish ? 'Current' : 'Aktuell',
+      // Detail labels
+      'power': isEnglish ? 'Power' : 'Leistung',
+      'autarky': isEnglish ? 'Autarky' : 'Autarkie',
+      // Module defaults
+      'module': isEnglish ? 'Module' : 'Modul',
+      // Live indicator
+      'live': isEnglish ? 'LIVE' : 'LIVE'
+    };
+    
+    return translations[key] || key;
+  }
+
+  // Get weather data from Home Assistant
+  _getWeatherData() {
+    if (!this._config.enable_weather_effects || !this._config.weather_entity || !this._hass) {
+      return { enabled: false };
+    }
+
+    // Get weather state
+    const weatherState = this._hass.states[this._config.weather_entity];
+    const weatherCondition = (weatherState?.state || 'clear').toLowerCase();
+
+    // Get sun state for day/night
+    const sunState = this._hass.states['sun.sun'];
+    const isNight = sunState?.state === 'below_horizon';
+    
+    // Get sun elevation for sunrise/sunset effects
+    const sunElevation = sunState?.attributes?.elevation || 0;
+    const isSunrise = sunElevation > -10 && sunElevation < 10 && !isNight;
+    const isSunset = sunElevation > -10 && sunElevation < 10 && isNight;
+
+    // Map HA weather states to animation types
+    let weatherType = 'clear';
+    if (weatherCondition.includes('rain') || weatherCondition.includes('drizzle') || weatherCondition.includes('shower')) {
+      weatherType = 'rainy';
+    } else if (weatherCondition.includes('snow') || weatherCondition.includes('sleet') || weatherCondition.includes('hail')) {
+      weatherType = 'snowy';
+    } else if (weatherCondition.includes('fog') || weatherCondition.includes('mist') || weatherCondition.includes('haze')) {
+      weatherType = 'foggy';
+    } else if (weatherCondition.includes('cloud') || weatherCondition.includes('overcast')) {
+      weatherType = 'cloudy';
+    } else if (weatherCondition.includes('clear') || weatherCondition.includes('sunny')) {
+      weatherType = 'sunny';
+    } else if (weatherCondition.includes('thunder') || weatherCondition.includes('lightning')) {
+      weatherType = 'stormy';
+    } else if (weatherCondition.includes('wind')) {
+      weatherType = 'windy';
+    }
+
+    // Get cloud coverage from optional sensor (0-100%)
+    let cloudCoverage = null;
+    if (this._config.cloud_coverage_entity) {
+      const cloudState = this._hass.states[this._config.cloud_coverage_entity];
+      if (cloudState) {
+        cloudCoverage = parseFloat(cloudState.state) || 0;
+      }
+    }
+
+    return {
+      enabled: true,
+      weatherType,
+      isNight,
+      isSunrise,
+      isSunset,
+      condition: weatherCondition,
+      cloudCoverage
+    };
+  }
+
+  // Render weather effects HTML
+  _renderWeatherEffects(weatherData) {
+    if (!weatherData.enabled) return '';
+
+    let html = '<div class="weather-container">';
+    const { weatherType, isNight, isSunrise, isSunset } = weatherData;
+
+    // Rain effect
+    if (weatherType === 'rainy' || weatherType === 'stormy') {
+      const dropCount = weatherType === 'stormy' ? 35 : 20;
+      for (let i = 0; i < dropCount; i++) {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 2;
+        const duration = 0.6 + Math.random() * 0.4;
+        const opacity = 0.3 + Math.random() * 0.4;
+        html += `<div class="rain-drop" style="left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s; opacity: ${opacity};"></div>`;
+      }
+    }
+
+    // Snow effect
+    if (weatherType === 'snowy') {
+      for (let i = 0; i < 40; i++) {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 6;
+        const duration = 4 + Math.random() * 6;
+        const size = 2 + Math.random() * 4;
+        const opacity = 0.4 + Math.random() * 0.4;
+        html += `<div class="snow-flake" style="left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s; width: ${size}px; height: ${size}px; opacity: ${opacity};"></div>`;
+      }
+    }
+
+    // Fog effect
+    if (weatherType === 'foggy') {
+      html += `<div class="fog-layer fog-1"></div>`;
+      html += `<div class="fog-layer fog-2"></div>`;
+      html += `<div class="fog-layer fog-3"></div>`;
+    }
+
+    // Lightning effect for storms
+    if (weatherType === 'stormy') {
+      html += `<div class="lightning"></div>`;
+    }
+
+    // Night effects: stars and moon
+    if (isNight) {
+      // Stars - only in top 15-20% of the card
+      html += '<div class="stars-container">';
+      for (let i = 0; i < 20; i++) {
+        const left = Math.random() * 100;
+        const top = Math.random() * 18; // Only top 18%
+        const size = 1 + Math.random() * 1.5;
+        const delay = Math.random() * 3;
+        const brightness = 0.2 + Math.random() * 0.3; // More transparent (0.2-0.5)
+        html += `<div class="star" style="left: ${left}%; top: ${top}%; width: ${size}px; height: ${size}px; animation-delay: ${delay}s; opacity: ${brightness};"></div>`;
+      }
+      html += '</div>';
+
+      // Moon (only if not completely cloudy) - more subtle
+      if (weatherType !== 'foggy' && weatherType !== 'stormy') {
+        html += `
+          <div class="moon">
+            <div class="moon-crater c1"></div>
+            <div class="moon-crater c2"></div>
+            <div class="moon-crater c3"></div>
+          </div>
+        `;
+      }
+    } else {
+      // Day effects: sun glow - more subtle
+      if (weatherType === 'sunny' || weatherType === 'clear') {
+        html += '<div class="sun-glow"></div>';
+      }
+    }
+
+    // Sunrise/Sunset gradient overlay
+    if (isSunrise) {
+      html += '<div class="sunrise-overlay"></div>';
+    } else if (isSunset) {
+      html += '<div class="sunset-overlay"></div>';
+    }
+
+    // Clouds based on cloud coverage or weather type
+    const cloudCoverage = weatherData.cloudCoverage;
+    const showClouds = (weatherType === 'cloudy' || (cloudCoverage !== null && cloudCoverage > 0)) && 
+                       weatherType !== 'foggy' && !isNight;
+    
+    if (showClouds) {
+      // Determine cloud count based on coverage (if available) or default to all
+      let staticCount = 3;
+      let movingCount = 4;
+      
+      if (cloudCoverage !== null) {
+        // Scale clouds based on coverage percentage
+        if (cloudCoverage <= 20) {
+          staticCount = 0; movingCount = 1;
+        } else if (cloudCoverage <= 40) {
+          staticCount = 1; movingCount = 1;
+        } else if (cloudCoverage <= 55) {
+          staticCount = 2; movingCount = 2;
+        } else if (cloudCoverage <= 70) {
+          staticCount = 2; movingCount = 3;
+        } else if (cloudCoverage <= 85) {
+          staticCount = 3; movingCount = 3;
+        } else {
+          staticCount = 3; movingCount = 4;
+        }
+      }
+      
+      html += '<!-- Clouds based on coverage -->';
+      // Static clouds
+      if (staticCount >= 1) html += '<div class="cloud cloud-static cloud-static-1"></div>';
+      if (staticCount >= 2) html += '<div class="cloud cloud-static cloud-static-2"></div>';
+      if (staticCount >= 3) html += '<div class="cloud cloud-static cloud-static-3"></div>';
+      // Moving clouds
+      if (movingCount >= 1) html += '<div class="cloud cloud-moving cloud-1"></div>';
+      if (movingCount >= 2) html += '<div class="cloud cloud-moving cloud-2"></div>';
+      if (movingCount >= 3) html += '<div class="cloud cloud-moving cloud-3"></div>';
+      if (movingCount >= 4) html += '<div class="cloud cloud-moving cloud-4"></div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // Get weather-related CSS styles
+  _getWeatherStyles() {
+    return `
+      /* Weather Container - between house image and UI elements */
+      .weather-container {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+        border-radius: 24px;
+      }
+
+      /* Rain Animation */
+      .rain-drop {
+        position: absolute;
+        width: 2px;
+        height: 20px;
+        background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.6), rgba(174, 194, 224, 0.8));
+        top: -30px;
+        border-radius: 0 0 2px 2px;
+        animation: rain-fall linear infinite;
+        filter: blur(0.5px);
+      }
+      @keyframes rain-fall {
+        0% { top: -30px; opacity: 0; }
+        5% { opacity: 1; }
+        95% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+      }
+
+      /* Snow Animation */
+      .snow-flake {
+        position: absolute;
+        background: radial-gradient(circle at 30% 30%, #ffffff, #e8e8e8);
+        border-radius: 50%;
+        top: -10px;
+        filter: blur(0.5px);
+        animation: snow-fall linear infinite;
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+      }
+      @keyframes snow-fall {
+        0% { 
+          top: -10px; 
+          transform: translateX(0) rotate(0deg); 
+          opacity: 0; 
+        }
+        5% { opacity: 0.8; }
+        50% { transform: translateX(25px) rotate(180deg); }
+        95% { opacity: 0.8; }
+        100% { 
+          top: 100%; 
+          transform: translateX(-25px) rotate(360deg); 
+          opacity: 0; 
+        }
+      }
+
+      /* Fog Animation */
+      .fog-layer {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg, 
+          transparent 0%, 
+          rgba(200, 210, 220, 0.15) 20%, 
+          rgba(200, 210, 220, 0.25) 50%, 
+          rgba(200, 210, 220, 0.15) 80%, 
+          transparent 100%
+        );
+        animation: fog-drift linear infinite;
+        filter: blur(30px);
+      }
+      .fog-1 { animation-duration: 25s; }
+      .fog-2 { animation-duration: 35s; animation-direction: reverse; opacity: 0.7; }
+      .fog-3 { animation-duration: 45s; animation-delay: -10s; opacity: 0.5; top: 30%; }
+      @keyframes fog-drift {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      /* Stars Animation - subtle, only in top area */
+      .stars-container {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .star {
+        position: absolute;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8), rgba(170, 204, 255, 0.5));
+        border-radius: 50%;
+        animation: star-twinkle 4s ease-in-out infinite;
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+      }
+      @keyframes star-twinkle {
+        0%, 100% { opacity: 0.2; transform: scale(0.9); }
+        50% { opacity: 0.5; transform: scale(1.1); }
+      }
+
+      /* Moon - subtle and transparent, positioned below autarky badge */
+      .moon {
+        position: absolute;
+        top: 50px;
+        right: 60px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(245, 245, 245, 0.5) 0%, rgba(232, 232, 232, 0.4) 50%, rgba(208, 208, 208, 0.3) 100%);
+        box-shadow: 
+          0 0 15px rgba(255, 255, 255, 0.15),
+          0 0 30px rgba(255, 255, 255, 0.08);
+        z-index: 0;
+        opacity: 0.6;
+      }
+      .moon-crater {
+        position: absolute;
+        background: radial-gradient(circle at 60% 40%, rgba(180, 180, 180, 0.3), rgba(160, 160, 160, 0.4));
+        border-radius: 50%;
+        box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.15);
+      }
+      .moon-crater.c1 { width: 10px; height: 10px; top: 6px; right: 8px; }
+      .moon-crater.c2 { width: 6px; height: 6px; bottom: 10px; left: 10px; }
+      .moon-crater.c3 { width: 5px; height: 5px; top: 16px; left: 6px; }
+
+      /* Sun Glow - subtle, positioned in top area */
+      .sun-glow {
+        position: absolute;
+        top: 50px;
+        right: 100px;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(
+          circle at center,
+          rgba(255, 200, 50, 0.2) 0%,
+          rgba(255, 180, 50, 0.1) 30%,
+          rgba(255, 160, 50, 0.05) 50%,
+          transparent 70%
+        );
+        filter: blur(25px);
+        z-index: 0;
+        animation: sun-pulse 10s ease-in-out infinite;
+      }
+      @keyframes sun-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+
+      /* Sunrise/Sunset Overlays - subtle gradients, below UI */
+      .sunrise-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(255, 150, 80, 0.08) 0%,
+          rgba(255, 180, 100, 0.05) 20%,
+          transparent 50%
+        );
+        z-index: 0;
+        pointer-events: none;
+      }
+      .sunset-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(255, 100, 50, 0.1) 0%,
+          rgba(255, 80, 80, 0.08) 15%,
+          rgba(180, 80, 120, 0.05) 35%,
+          transparent 60%
+        );
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* Lightning Effect - below UI elements */
+      .lightning {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0);
+        animation: lightning-flash 8s infinite;
+        z-index: 0;
+        pointer-events: none;
+      }
+      @keyframes lightning-flash {
+        0%, 89%, 91%, 93%, 100% { background: rgba(255, 255, 255, 0); }
+        90%, 92% { background: rgba(255, 255, 255, 0.3); }
+      }
+
+      /* Clouds - subtle, only in top area, below UI */
+      .cloud {
+        position: absolute;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.3) 0%,
+          rgba(220, 220, 230, 0.2) 100%
+        );
+        border-radius: 50px;
+        filter: blur(3px);
+        z-index: 0;
+      }
+      .cloud::before, .cloud::after {
+        content: '';
+        position: absolute;
+        background: inherit;
+        border-radius: 50%;
+      }
+      .cloud-1 {
+        width: 60px; height: 22px;
+        top: 8%; left: -80px;
+        animation-duration: 50s;
+        opacity: 0.4;
+      }
+      .cloud-1::before { width: 30px; height: 30px; top: -15px; left: 12px; }
+      .cloud-1::after { width: 35px; height: 35px; top: -18px; left: 28px; }
+      .cloud-2 {
+        width: 45px; height: 18px;
+        top: 12%; left: -60px;
+        animation-duration: 65s;
+        animation-delay: -20s;
+        opacity: 0.3;
+      }
+      .cloud-2::before { width: 22px; height: 22px; top: -12px; left: 8px; }
+      .cloud-2::after { width: 28px; height: 28px; top: -14px; left: 20px; }
+      .cloud-3 {
+        width: 70px; height: 25px;
+        top: 5%; left: -90px;
+        animation-duration: 80s;
+        animation-delay: -35s;
+        opacity: 0.25;
+      }
+      .cloud-3::before { width: 35px; height: 35px; top: -18px; left: 15px; }
+      .cloud-3::after { width: 42px; height: 42px; top: -22px; left: 35px; }
+      .cloud-4 {
+        width: 50px; height: 18px;
+        top: 16%; left: -70px;
+        animation-duration: 60s;
+        animation-delay: -15s;
+        opacity: 0.32;
+      }
+      .cloud-4::before { width: 25px; height: 25px; top: -12px; left: 10px; }
+      .cloud-4::after { width: 30px; height: 30px; top: -15px; left: 24px; }
+      
+      /* Static clouds - gently float in place */
+      .cloud-static {
+        animation: cloud-float 8s ease-in-out infinite;
+      }
+      .cloud-static-1 {
+        width: 55px; height: 20px;
+        top: 15%; left: 25%;
+        opacity: 0.35;
+      }
+      .cloud-static-1::before { width: 28px; height: 28px; top: -14px; left: 10px; }
+      .cloud-static-1::after { width: 32px; height: 32px; top: -16px; left: 25px; }
+      .cloud-static-2 {
+        width: 48px; height: 18px;
+        top: 11%; left: 60%;
+        opacity: 0.3;
+        animation-delay: -3s;
+      }
+      .cloud-static-2::before { width: 24px; height: 24px; top: -12px; left: 8px; }
+      .cloud-static-2::after { width: 28px; height: 28px; top: -14px; left: 22px; }
+      .cloud-static-3 {
+        width: 42px; height: 16px;
+        top: 18%; left: 45%;
+        opacity: 0.28;
+        animation-delay: -5s;
+      }
+      .cloud-static-3::before { width: 20px; height: 20px; top: -10px; left: 7px; }
+      .cloud-static-3::after { width: 24px; height: 24px; top: -12px; left: 18px; }
+      
+      /* Moving clouds - use individual properties to not override duration/delay */
+      .cloud-moving {
+        animation-name: cloud-drift;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      
+      @keyframes cloud-drift {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(100vw + 200px)); }
+      }
+      @keyframes cloud-float {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        25% { transform: translateX(5px) translateY(-3px); }
+        50% { transform: translateX(0) translateY(-5px); }
+        75% { transform: translateX(-5px) translateY(-2px); }
+      }
+
+      /* Night mode house dimming */
+      .house-img.night-mode {
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)) brightness(0.55) saturate(0.85);
+        transition: filter 1s ease;
+      }
+      
+      /* Night background adjustment - subtle darkening at top */
+      .visual-container.night-mode {
+        background: linear-gradient(
+          to bottom,
+          rgba(15, 23, 42, 0.2) 0%,
+          transparent 40%
+        );
+      }
     `;
   }
 
@@ -455,6 +1118,9 @@ class PrismEnergyCard extends HTMLElement {
     const hasEV = !!this._config.ev_power;
     const hasAutarky = !!this._config.autarky;
     const houseImg = this._config.image;
+    
+    // Get weather data
+    const weatherData = this._getWeatherData();
 
     // Determine flow states
     // OpenEMS: GridActivePower positive = import, negative = export
@@ -539,7 +1205,7 @@ class PrismEnergyCard extends HTMLElement {
           mix-blend-mode: overlay;
         }
 
-        /* Header */
+        /* Header - must be above weather animations */
         .header {
           position: absolute;
           top: 0;
@@ -549,7 +1215,7 @@ class PrismEnergyCard extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          z-index: 30;
+          z-index: 50;
           background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent);
         }
         
@@ -602,6 +1268,20 @@ class PrismEnergyCard extends HTMLElement {
           text-transform: uppercase;
           letter-spacing: 0.08em;
           color: #4ade80;
+        }
+        
+        .weather-separator {
+          margin: 0 6px;
+          color: rgba(255, 255, 255, 0.3);
+          font-size: 0.65rem;
+        }
+        
+        .weather-status {
+          font-size: 0.65rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.4);
         }
         
         .autarkie-badge {
@@ -689,6 +1369,19 @@ class PrismEnergyCard extends HTMLElement {
           100% {
             stroke-dashoffset: 100;
           }
+        }
+        
+        @keyframes track-pulse {
+          0%, 100% {
+            stroke-opacity: 0.18;
+          }
+          50% {
+            stroke-opacity: 0.06;
+          }
+        }
+        
+        .flow-track {
+          animation: track-pulse 2.2s ease-in-out infinite;
         }
         
         .flow-beam {
@@ -902,6 +1595,8 @@ class PrismEnergyCard extends HTMLElement {
           align-items: center;
           justify-content: center;
         }
+        
+        ${this._getWeatherStyles()}
       </style>
 
       <div class="card">
@@ -918,6 +1613,10 @@ class PrismEnergyCard extends HTMLElement {
               <div class="live-indicator">
                 <div class="dot"></div>
                 <span class="live-text">Live</span>
+                ${weatherData.enabled ? `
+                <span class="weather-separator">|</span>
+                <span class="weather-status">${this._getDayNightLabel(weatherData.isNight)} • ${this._getWeatherLabel(weatherData)}</span>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -930,20 +1629,30 @@ class PrismEnergyCard extends HTMLElement {
         </div>
 
         <!-- Main Visual -->
-        <div class="visual-container">
-          <img src="${houseImg}" class="house-img" alt="Energy Home" />
+        <div class="visual-container ${weatherData.enabled && weatherData.isNight ? 'night-mode' : ''}">
+          ${weatherData.enabled ? this._renderWeatherEffects(weatherData) : ''}
+          <img src="${houseImg}" class="house-img ${weatherData.enabled && weatherData.isNight ? 'night-mode' : ''}" alt="Energy Home" />
           <div class="bottom-gradient"></div>
 
           <!-- SVG Flows -->
           <svg class="svg-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
             <!-- Glow filter definition -->
             <defs>
-              <filter id="glow-filter" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="5" result="coloredBlur" />
+              <!-- Stroke Glow Filter (soft edges) -->
+              <filter id="strokeGlow" x="-100%" y="-100%" width="300%" height="300%" filterUnits="userSpaceOnUse">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur1" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur2" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0.4" result="softCore" />
                 <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="blur2" />
+                  <feMergeNode in="softCore" />
                 </feMerge>
+              </filter>
+              <!-- Soft Core Filter (minimal blur for smooth edges) -->
+              <filter id="softEdge" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" />
               </filter>
             </defs>
             
@@ -965,58 +1674,58 @@ class PrismEnergyCard extends HTMLElement {
           </svg>
 
           <!-- Solar Pill (Top - Roof) - Clickable for history -->
-          <div class="pill pill-solar" style="top: 22%; left: 52%;" data-entity="${this._config.solar_power}" title="Klicken für Historie">
+          <div class="pill pill-solar" style="top: 22%; left: 52%;" data-entity="${this._config.solar_power}">
             <div class="pill-icon ${isSolarActive ? 'bg-solar' : 'bg-inactive'}">
               <ha-icon icon="mdi:solar-power" class="${isSolarActive ? 'color-solar' : 'color-inactive'}"></ha-icon>
             </div>
             <div class="pill-content">
               <span class="pill-val">${this._formatPower(solarPower)}</span>
-              <span class="pill-label">${isSolarActive ? 'Erzeugung' : 'Inaktiv'}</span>
+              <span class="pill-label">${isSolarActive ? this._t('production') : this._t('inactive')}</span>
             </div>
           </div>
 
           <!-- Grid Pill (Left - Power Pole) - Clickable for history -->
-          <div class="pill pill-grid" style="top: 32%; left: 18%;" data-entity="${this._config.grid_power}" title="Klicken für Historie">
+          <div class="pill pill-grid" style="top: 32%; left: 18%;" data-entity="${this._config.grid_power}">
             <div class="pill-icon ${isGridImport || isGridExport ? 'bg-grid' : 'bg-inactive'}">
               <ha-icon icon="mdi:transmission-tower" class="${isGridImport || isGridExport ? 'color-grid' : 'color-inactive'}"></ha-icon>
             </div>
             <div class="pill-content">
               <span class="pill-val">${this._formatPower(gridPower)}</span>
-              <span class="pill-label">${isGridExport ? 'Einspeisung' : isGridImport ? 'Bezug' : 'Neutral'}</span>
+              <span class="pill-label">${isGridExport ? this._t('export') : isGridImport ? this._t('import') : this._t('neutral')}</span>
             </div>
           </div>
 
           <!-- Home Pill (Center - House) - Clickable for history -->
-          <div class="pill pill-home" style="top: 54%; left: 55%;" data-entity="${this._config.home_consumption}" title="Klicken für Historie">
+          <div class="pill pill-home" style="top: 54%; left: 55%;" data-entity="${this._config.home_consumption}">
             <div class="pill-icon bg-home">
               <ha-icon icon="mdi:home-lightning-bolt" class="color-home"></ha-icon>
             </div>
             <div class="pill-content">
               <span class="pill-val">${this._formatPower(homeConsumption)}</span>
-              <span class="pill-label">Verbrauch</span>
+              <span class="pill-label">${this._t('consumption')}</span>
             </div>
           </div>
 
           <!-- Battery Pill (Right - Battery Storage) - Clickable for history -->
-          <div class="pill pill-battery" style="top: 60%; left: 88%;" data-entity="${this._config.battery_soc}" title="Klicken für Historie">
+          <div class="pill pill-battery" style="top: 60%; left: 88%;" data-entity="${this._config.battery_soc}">
             <div class="pill-icon ${isBatteryCharging || isBatteryDischarging ? 'bg-battery' : 'bg-inactive'}">
               <ha-icon icon="${batteryIcon}" class="${isBatteryCharging || isBatteryDischarging ? 'color-battery' : 'color-inactive'}"></ha-icon>
             </div>
             <div class="pill-content">
               <span class="pill-val">${Math.round(batterySoc)}%</span>
-              <span class="pill-label">${isBatteryCharging ? 'Ladung' : isBatteryDischarging ? 'Entladung' : 'Standby'}</span>
+              <span class="pill-label">${isBatteryCharging ? this._t('charging') : isBatteryDischarging ? this._t('discharging') : this._t('standby')}</span>
             </div>
           </div>
 
           <!-- EV Pill (Bottom Left - Carport) - Clickable for history -->
           ${hasEV ? `
-          <div class="pill pill-ev" style="top: 72%; left: 22%;" data-entity="${this._config.ev_power}" title="Klicken für Historie">
+          <div class="pill pill-ev" style="top: 72%; left: 22%;" data-entity="${this._config.ev_power}">
             <div class="pill-icon ${isEvCharging ? 'bg-ev' : 'bg-inactive'}">
               <ha-icon icon="mdi:car-electric" class="${isEvCharging ? 'color-ev' : 'color-inactive'}"></ha-icon>
             </div>
             <div class="pill-content">
-              <span class="pill-val">${isEvCharging ? this._formatPower(evPower) : 'Idle'}</span>
-              <span class="pill-label">Fahrzeug</span>
+              <span class="pill-val">${isEvCharging ? this._formatPower(evPower) : this._t('idle')}</span>
+              <span class="pill-label">EV</span>
             </div>
           </div>
           ` : ''}
@@ -1025,7 +1734,7 @@ class PrismEnergyCard extends HTMLElement {
         <!-- Bottom Details -->
         ${this._config.show_details ? `
         <div class="details-grid">
-          <!-- Erzeugung -->
+          <!-- Solar -->
           <div class="detail-col">
             <div class="detail-header">Solar</div>
             <div class="detail-content">
@@ -1036,12 +1745,12 @@ class PrismEnergyCard extends HTMLElement {
             </div>
           </div>
 
-          <!-- Netz -->
+          <!-- Grid -->
           <div class="detail-col">
-            <div class="detail-header">Netz</div>
+            <div class="detail-header">${this._t('grid')}</div>
             <div class="detail-content">
               <div class="detail-row">
-                <span class="detail-label">${isGridExport ? 'Einspeisung' : 'Bezug'}</span>
+                <span class="detail-label">${isGridExport ? this._t('export') : this._t('import')}</span>
                 <span class="detail-val" style="color: ${isGridExport ? colors.battery : '#ef4444'};">${this._formatPower(gridPower)}</span>
               </div>
             </div>
@@ -1050,12 +1759,12 @@ class PrismEnergyCard extends HTMLElement {
             </div>
           </div>
 
-          <!-- Verbrauch -->
+          <!-- Consumption -->
           <div class="detail-col">
-            <div class="detail-header">Verbrauch</div>
+            <div class="detail-header">${this._t('consumption')}</div>
             <div class="detail-content">
               <div class="detail-row">
-                <span class="detail-label">Aktuell</span>
+                <span class="detail-label">${this._t('current')}</span>
                 <span class="detail-val">${this._formatPower(homeConsumption)}</span>
               </div>
             </div>
@@ -1064,12 +1773,12 @@ class PrismEnergyCard extends HTMLElement {
             </div>
           </div>
 
-          <!-- Speicher -->
+          <!-- Storage -->
           <div class="detail-col">
-            <div class="detail-header">Speicher</div>
+            <div class="detail-header">${this._t('storage')}</div>
             <div class="detail-content">
               <div class="detail-row">
-                <span class="detail-label">Leistung</span>
+                <span class="detail-label">${this._t('power')}</span>
                 <span class="detail-val">${this._formatPower(Math.abs(batteryPower))}</span>
               </div>
               <div class="detail-row">
@@ -1104,8 +1813,9 @@ window.customCards.push({
 });
 
 console.info(
-  `%c PRISM-ENERGY %c v1.0.0 `,
+  `%c PRISM-ENERGY %c v1.1.0 %c Weather Effects `,
   'background: #F59E0B; color: black; font-weight: bold; padding: 2px 6px; border-radius: 4px 0 0 4px;',
-  'background: #1e2024; color: white; font-weight: bold; padding: 2px 6px; border-radius: 0 4px 4px 0;'
+  'background: #1e2024; color: white; font-weight: bold; padding: 2px 6px;',
+  'background: #3B82F6; color: white; font-weight: bold; padding: 2px 6px; border-radius: 0 4px 4px 0;'
 );
 
