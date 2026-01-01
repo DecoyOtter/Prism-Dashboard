@@ -394,13 +394,13 @@ class PrismBambuCard extends HTMLElement {
     updateText('.status-text', data.stateStr);
 
     // Update time left
-    const timeValue = this.shadowRoot.querySelector('.stats-row .stat-val');
+    const timeValue = this.shadowRoot.querySelector('.stats-row .stat-group .stat-value-time');
     if (timeValue) {
       timeValue.textContent = data.printTimeLeft;
     }
 
     // Update layer
-    const layerValue = this.shadowRoot.querySelector('.stats-row .stat-val:last-of-type');
+    const layerValue = this.shadowRoot.querySelector('.stats-row .stat-group.stat-value-layer');
     if (layerValue) {
       layerValue.textContent = `${data.currentLayer} / ${data.totalLayers}`;
     }
@@ -2624,11 +2624,11 @@ class PrismBambuCard extends HTMLElement {
         <div class="stats-row">
             <div class="stat-group">
                 <span class="stat-label">Time Left</span>
-                <span class="stat-val">${data.printTimeLeft}</span>
+                <span class="stat-value-time">${data.printTimeLeft}</span>
             </div>
             <div class="stat-group" style="align-items: flex-end;">
                 <span class="stat-label">Layer</span>
-                <span class="stat-val">${data.isIdle ? '--' : data.currentLayer} <span style="font-size: 0.875rem; opacity: 0.4;">/ ${data.isIdle ? '--' : data.totalLayers}</span></span>
+                <span class="stat-value-layer">${data.isIdle ? '--' : data.currentLayer} <span style="font-size: 0.875rem; opacity: 0.4;">/ ${data.isIdle ? '--' : data.totalLayers}</span></span>
             </div>
         </div>
 
