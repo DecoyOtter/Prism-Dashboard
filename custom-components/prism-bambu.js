@@ -2516,7 +2516,7 @@ class PrismBambuCard extends HTMLElement {
                 <div class="cover-image-container">
                     <div class="cover-image-wrapper ${data.isPrinting ? 'printing' : ''} ${data.isPaused ? 'paused' : ''} ${data.isIdle ? 'idle' : ''}">
                         <img src="${data.coverImageUrl}" class="cover-image" alt="3D Model" />
-                        <div class="cover-image-progress" style="--progress-height: ${data.progress}%;"></div>
+                        // <div class="cover-image-progress" style="--progress-height: ${data.progress}%;"></div>
                         <div class="cover-progress-badge">${Math.round(data.progress)}%</div>
                     </div>
                 </div>
