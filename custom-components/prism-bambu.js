@@ -247,6 +247,12 @@ class PrismBambuCard extends HTMLElement {
               label: 'Show AMS Temperature & Humidity (if available)',
               default: true,
               selector: { boolean: {} }
+            },
+            {
+              name: 'show_controls',
+              label: 'Show Printer Controls (LAN mode required)',
+              default: true,
+              selector: { boolean: {} }
             }
           ]
         }
@@ -1391,7 +1397,8 @@ class PrismBambuCard extends HTMLElement {
       showHumidity: this.config.show_humidity !== false,
       showCustomTemp: this.config.show_custom_temp !== false,
       showCustomFan: this.config.show_custom_fan !== false,
-      showAmsInfo: this.config.show_ams_info !== false
+      showAmsInfo: this.config.show_ams_info !== false,
+      showControls: this.config.show_controls !== false
     };
 
     // Debug: Log key data for icons and status
@@ -1462,7 +1469,8 @@ class PrismBambuCard extends HTMLElement {
       showHumidity: true,
       showCustomTemp: true,
       showCustomFan: true,
-      showAmsInfo: true
+      showAmsInfo: true,
+      showControls: true
     };
   }
 
@@ -2628,7 +2636,7 @@ class PrismBambuCard extends HTMLElement {
             <div class="progress-bar-fill"></div>
             <div class="progress-text">${data.progress}%</div>
         </div>
-
+        ${data.showControls ? `
         <div class="controls">
             <button class="btn btn-secondary btn-speed" ${data.isIdle ? 'disabled' : ''}>
                 <ha-icon icon="mdi:speedometer"></ha-icon>
@@ -2641,7 +2649,7 @@ class PrismBambuCard extends HTMLElement {
                 ${data.isPaused ? 'Resume Print' : data.isPrinting ? 'Pause Print' : 'Control'}
             </button>
         </div>
-
+        ` : ''}
       </div>
     `;
 
