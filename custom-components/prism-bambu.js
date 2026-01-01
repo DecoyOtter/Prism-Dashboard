@@ -394,13 +394,13 @@ class PrismBambuCard extends HTMLElement {
     updateText('.status-text', data.stateStr);
 
     // Update time left
-    const timeValue = this.shadowRoot.querySelector('.stats-row .stat-value');
+    const timeValue = this.shadowRoot.querySelector('.stats-row .stat-val');
     if (timeValue) {
       timeValue.textContent = data.printTimeLeft;
     }
 
     // Update layer
-    const layerValue = this.shadowRoot.querySelector('.stats-row .stat-value:last-of-type');
+    const layerValue = this.shadowRoot.querySelector('.stats-row .stat-val:last-of-type');
     if (layerValue) {
       layerValue.textContent = `${data.currentLayer} / ${data.totalLayers}`;
     }
